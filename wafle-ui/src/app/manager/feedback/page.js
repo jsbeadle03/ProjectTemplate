@@ -3,10 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { StatusBadge } from "@/components/status-badge";
-import {
-  getCategories,
-  getFeedbackList,
-} from "@/lib/mock-wafle-service";
+import { getCategories, getFeedbackList } from "@/lib/wafle-api";
 
 export default function FeedbackListPage() {
   const [categories, setCategories] = useState([]);
@@ -30,6 +27,16 @@ export default function FeedbackListPage() {
 
     return () => window.clearTimeout(timer);
   }, [categoryId, keyword, status]);
+
+  const clearFilters = () => {
+    setLoading(true);
+    setCategoryId("all");
+    setKeyword("");
+    setStatus("all");
+  };
+
+  const filtersActive =
+    categoryId !== "all" || status !== "all" || keyword !== "";
 
   return (
     <div className="page-stack">
@@ -91,6 +98,14 @@ export default function FeedbackListPage() {
             <option value="closed">Closed</option>
           </select>
         </label>
+        <button
+          type="button"
+          className="button button-secondary button-small"
+          onClick={clearFilters}
+          disabled={!filtersActive}
+        >
+          Clear filters
+        </button>
       </section>
 
       <section className="surface inbox-card">
