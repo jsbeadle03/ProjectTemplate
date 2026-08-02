@@ -14,6 +14,14 @@ function toStatus(row) {
   return "New";
 }
 
+// `%` and `_` are LIKE wildcards, so a search for "100%" would otherwise
+// match far more than the manager typed. Escaping keeps the term literal.
+// `!` is the escape character rather than a backslash, which would need
+// doubling through both the template literal and MariaDB's parser.
+function escapeLikeTerm(value) {
+  return value.replace(/[!%_]/g, (character) => `!${character}`);
+}
+
 function toDateLabel(value) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) {
@@ -29,8 +37,9 @@ function toDateLabel(value) {
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const categoryId = searchParams.get("categoryId") ?? "all";
-  const keyword = searchParams.get("keyword") ?? "";
+  const keyword = (searchParams.get("keyword") ?? "").trim();
   const status = searchParams.get("status") ?? "all";
+  const searchTerm = escapeLikeTerm(keyword);
 
   try {
     const pool = getPool();
@@ -49,9 +58,9 @@ export async function GET(request) {
        FROM feedback f
        JOIN categories c ON f.category_id = c.id
        WHERE (? = 'all' OR c.id = ?)
-         AND (? = '' OR f.content LIKE CONCAT('%', ?, '%'))
+         AND (? = '' OR f.content LIKE CONCAT('%', ?, '%') ESCAPE '!')
        ORDER BY f.created_at DESC`,
-      [categoryId, categoryId, keyword, keyword]
+      [categoryId, categoryId, searchTerm, searchTerm]
     );
 
     const items = rows
