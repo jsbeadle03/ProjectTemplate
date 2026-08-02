@@ -17,13 +17,15 @@ export default function FeedbackListPage() {
     getCategories().then(setCategories);
   }, []);
 
+  // Each keystroke now reaches MariaDB rather than the in-memory mock, so the
+  // search waits for a pause in typing before querying.
   useEffect(() => {
     const timer = window.setTimeout(() => {
-      getFeedbackList(categoryId, keyword, status).then((result) => {
+      getFeedbackList(categoryId, keyword.trim(), status).then((result) => {
         setItems(result);
         setLoading(false);
       });
-    }, 120);
+    }, 300);
 
     return () => window.clearTimeout(timer);
   }, [categoryId, keyword, status]);
@@ -36,7 +38,7 @@ export default function FeedbackListPage() {
   };
 
   const filtersActive =
-    categoryId !== "all" || status !== "all" || keyword !== "";
+    categoryId !== "all" || status !== "all" || keyword.trim() !== "";
 
   return (
     <div className="page-stack">
