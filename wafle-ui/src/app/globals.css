@@ -2115,6 +2115,30 @@ h3,
   margin: 2.2rem 0;
 }
 
+.read-status-row {
+  align-items: center;
+  border-top: 1px solid var(--line);
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  margin-bottom: 1.2rem;
+  padding-top: 1.2rem;
+}
+
+.read-receipt {
+  align-items: center;
+  color: var(--syrup);
+  display: flex;
+  font-size: 0.78rem;
+  font-weight: 750;
+  gap: 0.45rem;
+}
+
+.read-receipt.muted {
+  color: var(--ink-muted);
+  font-weight: 500;
+}
+
 .identity-warning {
   align-items: center;
   background: #f4efe7;
