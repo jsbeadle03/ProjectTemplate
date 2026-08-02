@@ -3,14 +3,14 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { StatusBadge } from "@/components/status-badge";
-import { getMyResponses } from "@/lib/mock-wafle-service";
+import { getMyFeedback } from "@/lib/wafle-api";
 
 export default function MyResponsesPage() {
   const [responses, setResponses] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getMyResponses().then((result) => {
+    getMyFeedback().then((result) => {
       setResponses(result);
       setLoading(false);
     });
@@ -23,8 +23,8 @@ export default function MyResponsesPage() {
           <span className="eyebrow">My responses</span>
           <h1>See how the loop is closing.</h1>
           <p>
-            Manager updates connected to feedback you shared during this demo
-            session.
+            Whether a manager has read what you shared, and any updates they
+            have posted back.
           </p>
         </div>
       </header>
@@ -44,12 +44,38 @@ export default function MyResponsesPage() {
               <StatusBadge status={item.status} />
             </div>
             <blockquote>{item.body}</blockquote>
-            <div className="manager-response prominent">
-              <span className="response-label">{item.actionType}</span>
-              <p>{item.response}</p>
+            <div className="read-status-row">
+              {item.isRead ? (
+                <span className="read-receipt">
+                  <span aria-hidden="true">✓</span>
+                  Read by a manager
+                  {item.readAt ? ` on ${item.readAt}` : ""}
+                </span>
+              ) : (
+                <span className="read-receipt muted">
+                  Not read by a manager yet
+                </span>
+              )}
             </div>
+            {item.response ? (
+              <div className="manager-response prominent">
+                <span className="response-label">
+                  {item.actionType || "Manager response"}
+                </span>
+                <p>{item.response}</p>
+              </div>
+            ) : null}
           </article>
         ))}
+        {!loading && responses.length === 0 ? (
+          <div className="surface empty-state">
+            <h2>Nothing shared yet.</h2>
+            <p>
+              Feedback you share in this session will appear here, along with
+              whether a manager has read it.
+            </p>
+          </div>
+        ) : null}
       </div>
 
       <div className="surface empty-prompt">

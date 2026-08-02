@@ -38,7 +38,7 @@ export function toDateTimeLabel(value) {
   });
 }
 
-export const DETAIL_QUERY = `SELECT
+const FEEDBACK_SELECT = `SELECT
      f.id AS feedbackId,
      f.content AS body,
      f.is_read AS isRead,
@@ -54,8 +54,15 @@ export const DETAIL_QUERY = `SELECT
         WHERE fr.feedback_id = f.id
         ORDER BY fr.created_at DESC LIMIT 1) AS response
    FROM feedback f
-   JOIN categories c ON f.category_id = c.id
-   WHERE f.id = ?`;
+   JOIN categories c ON f.category_id = c.id`;
+
+export const DETAIL_QUERY = `${FEEDBACK_SELECT} WHERE f.id = ?`;
+
+// An employee only ever sees their own submissions, matched on the anonymous
+// id rather than any column that could identify them.
+export const MY_FEEDBACK_QUERY = `${FEEDBACK_SELECT}
+   WHERE f.anonymous_id = ?
+   ORDER BY f.created_at DESC`;
 
 export function toDetail(row) {
   return {
