@@ -148,7 +148,7 @@ export default function EmployeeHomePage() {
             what you said.
           </p>
         </div>
-        <Link href="/">Learn how it works</Link>
+        <Link href="/privacy">Learn how it works</Link>
       </aside>
     </div>
   );
