@@ -97,6 +97,14 @@ export async function submitFeedback(categoryId, content) {
   return res.json();
 }
 
+export async function getPendingResponses() {
+  const res = await fetch("/api/pending-responses");
+  if (!res.ok) {
+    return [];
+  }
+  return res.json();
+}
+
 export async function getFeedbackList(categoryId, keyword, status) {
   const params = new URLSearchParams({
     categoryId: categoryId ?? "all",

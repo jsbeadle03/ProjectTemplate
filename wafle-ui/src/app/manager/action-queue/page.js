@@ -1,20 +1,30 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { StatusBadge } from "@/components/status-badge";
-import { getPendingResponses } from "@/lib/mock-wafle-service";
+import { getPendingResponses } from "@/lib/wafle-api";
 
 export default function ActionQueuePage() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const loadQueue = useCallback(() => {
     getPendingResponses().then((result) => {
       setItems(result);
       setLoading(false);
     });
   }, []);
+
+  useEffect(() => {
+    loadQueue();
+    window.addEventListener("focus", loadQueue);
+    document.addEventListener("visibilitychange", loadQueue);
+    return () => {
+      window.removeEventListener("focus", loadQueue);
+      document.removeEventListener("visibilitychange", loadQueue);
+    };
+  }, [loadQueue]);
 
   return (
     <div className="page-stack">
