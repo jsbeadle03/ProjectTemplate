@@ -38,7 +38,10 @@ export function toDateTimeLabel(value) {
   });
 }
 
-const FEEDBACK_SELECT = `SELECT
+// f.anonymous_id is deliberately never selected here and `users` is never
+// joined in, so no query built on FEEDBACK_SELECT can leak who submitted
+// feedback into a manager-facing response.
+export const FEEDBACK_SELECT = `SELECT
      f.id AS feedbackId,
      f.content AS body,
      f.is_read AS isRead,
@@ -83,4 +86,22 @@ export function toDetail(row) {
 export function parseFeedbackId(value) {
   const feedbackId = Number(value);
   return Number.isInteger(feedbackId) && feedbackId > 0 ? feedbackId : null;
+}
+
+// Whitelists exactly the fields a manager view is allowed to render, so a
+// column added to FEEDBACK_SELECT later can never leak into a manager
+// response just by being present on the row.
+export function toManagerItem(row) {
+  return {
+    feedbackId: row.feedbackId,
+    categoryId: row.categoryId,
+    categoryName: row.categoryName,
+    body: row.body,
+    status: toStatus(row),
+    upCount: Number(row.upCount),
+    submittedAt: toDateLabel(row.createdAt),
+    isRead: Boolean(row.isRead),
+    readAt: row.readAt ? toDateTimeLabel(row.readAt) : "",
+    response: row.response ?? "",
+  };
 }

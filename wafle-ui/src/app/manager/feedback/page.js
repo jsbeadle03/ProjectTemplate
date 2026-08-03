@@ -54,6 +54,11 @@ export default function FeedbackListPage() {
         </div>
       </header>
 
+      <aside className="identity-warning">
+        <span className="privacy-orbit small" aria-hidden="true" />
+        Employee identity is intentionally unavailable for every item below.
+      </aside>
+
       <section className="surface filter-panel">
         <label className="search-field">
           <span className="sr-only">Search feedback</span>
