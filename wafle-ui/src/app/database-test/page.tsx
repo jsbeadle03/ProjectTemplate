@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createConnection } from "mysql2/promise";
 import type { RowDataPacket } from "mysql2";
 import type { CSSProperties } from "react";
+import { getDbConfig } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -11,12 +12,18 @@ export const metadata = {
   description: "A server-side connectivity check for the Waflé MySQL database.",
 };
 
-const database = {
-  host: process.env.WAFLE_DB_HOST ?? "107.180.1.16",
-  port: Number.parseInt(process.env.WAFLE_DB_PORT ?? "3306", 10),
-  schema: process.env.WAFLE_DB_SCHEMA ?? "cis440sum26team10",
-  user: process.env.WAFLE_DB_USER ?? "cis440sum26team10",
-};
+const database = getDbConfig();
+
+// Every table the app queries against. If one is missing, the schema isn't
+// fully provisioned even though the connection itself succeeds.
+const REQUIRED_TABLES = [
+  "categories",
+  "feedback",
+  "feedback_reactions",
+  "feedback_responses",
+  "mood_checkins",
+  "users",
+] as const;
 
 interface ProbeRow extends RowDataPacket {
   selectedSchema: string | null;
@@ -24,12 +31,20 @@ interface ProbeRow extends RowDataPacket {
   probe: number;
 }
 
+interface TableCountRow extends RowDataPacket {
+  tableName: string;
+  rowCount: number;
+}
+
+type TableStatus = { name: string; present: boolean; rowCount: number | null };
+
 type ConnectionResult =
   | {
       ok: true;
       selectedSchema: string;
       authenticatedAccount: string;
       durationMs: number;
+      tables: TableStatus[];
     }
   | {
       ok: false;
@@ -38,14 +53,14 @@ type ConnectionResult =
     };
 
 async function testDatabaseConnection(): Promise<ConnectionResult> {
-  const password = process.env.WAFLE_DB_PASSWORD;
+  const password = database.password;
 
-  if (!password) {
+  if (!password || !database.host || !database.user || !database.schema) {
     return {
       ok: false,
       code: "CONFIGURATION_REQUIRED",
       message:
-        "Set WAFLE_DB_PASSWORD in wafle-ui/.env.local, then restart the development server.",
+        "Set WAFLE_DB_HOST, WAFLE_DB_SCHEMA, WAFLE_DB_USER, and WAFLE_DB_PASSWORD in wafle-ui/.env.local, then restart the development server.",
     };
   }
 
@@ -88,11 +103,28 @@ async function testDatabaseConnection(): Promise<ConnectionResult> {
         );
       }
 
+      const [tableRows] = await connection.query<TableCountRow[]>(
+        `SELECT TABLE_NAME AS tableName, TABLE_ROWS AS rowCount
+           FROM information_schema.tables
+          WHERE table_schema = ?`,
+        [database.schema],
+      );
+      const presentTables = new Map(
+        tableRows.map((tableRow) => [tableRow.tableName, tableRow.rowCount]),
+      );
+
+      const tables: TableStatus[] = REQUIRED_TABLES.map((name) => ({
+        name,
+        present: presentTables.has(name),
+        rowCount: presentTables.has(name) ? Number(presentTables.get(name)) : null,
+      }));
+
       return {
         ok: true,
         selectedSchema: row.selectedSchema,
         authenticatedAccount: row.authenticatedAccount,
         durationMs: Date.now() - startedAt,
+        tables,
       };
     } finally {
       await connection.end();
@@ -127,8 +159,9 @@ export default async function DatabaseTestPage() {
           <h1 style={styles.title}>Can Waflé reach MySQL?</h1>
           <p style={styles.lede}>
             This page opens a server-side connection, confirms the configured
-            schema, and runs a read-only <code>SELECT 1</code> probe. No database
-            credentials are sent to the browser.
+            schema, runs a read-only <code>SELECT 1</code> probe, and checks that
+            every table the app depends on is present. No database credentials
+            are sent to the browser.
           </p>
         </section>
 
@@ -183,6 +216,31 @@ export default async function DatabaseTestPage() {
                 <dd style={styles.value}>Passed in {result.durationMs} ms</dd>
               </div>
             </dl>
+          ) : null}
+
+          {result.ok === true ? (
+            <div style={styles.tableSection}>
+              <span style={styles.label}>Schema tables</span>
+              <ul style={styles.tableList}>
+                {result.tables.map((table) => (
+                  <li key={table.name} style={styles.tableRow}>
+                    <span
+                      aria-hidden="true"
+                      style={{
+                        ...styles.tableDot,
+                        background: table.present ? "#5e9e6e" : "#c1554e",
+                      }}
+                    />
+                    <code style={styles.tableName}>{table.name}</code>
+                    <span style={styles.tableCount}>
+                      {table.present
+                        ? `${table.rowCount ?? 0} rows`
+                        : "missing"}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           ) : (
             <div style={styles.errorPanel}>
               {result.code && <strong style={styles.errorCode}>{result.code}</strong>}
@@ -325,6 +383,40 @@ const styles: Record<string, CSSProperties> = {
     marginBottom: "0.4rem",
   },
   errorMessage: { color: "#6d3d38", lineHeight: 1.6, margin: 0 },
+  tableSection: { marginTop: "2rem" },
+  tableList: {
+    display: "grid",
+    gap: "0.5rem",
+    listStyle: "none",
+    margin: "0.6rem 0 0",
+    padding: 0,
+  },
+  tableRow: {
+    alignItems: "center",
+    background: "#f8f4ec",
+    border: "1px solid #eadfce",
+    borderRadius: "10px",
+    display: "flex",
+    gap: "0.7rem",
+    padding: "0.6rem 0.85rem",
+  },
+  tableDot: {
+    borderRadius: "50%",
+    flex: "0 0 auto",
+    height: "8px",
+    width: "8px",
+  },
+  tableName: {
+    color: "#3b2a20",
+    flex: "1 1 auto",
+    fontSize: "0.8rem",
+    fontWeight: 700,
+  },
+  tableCount: {
+    color: "#796b61",
+    fontSize: "0.72rem",
+    fontWeight: 700,
+  },
   actions: {
     alignItems: "center",
     display: "flex",
