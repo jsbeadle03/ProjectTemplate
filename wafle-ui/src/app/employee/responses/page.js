@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { StatusBadge } from "@/components/status-badge";
 import { getMyFeedback } from "@/lib/wafle-api";
 
@@ -9,12 +9,22 @@ export default function MyResponsesPage() {
   const [responses, setResponses] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const loadResponses = useCallback(() => {
     getMyFeedback().then((result) => {
       setResponses(result);
       setLoading(false);
     });
   }, []);
+
+  useEffect(() => {
+    loadResponses();
+    window.addEventListener("focus", loadResponses);
+    document.addEventListener("visibilitychange", loadResponses);
+    return () => {
+      window.removeEventListener("focus", loadResponses);
+      document.removeEventListener("visibilitychange", loadResponses);
+    };
+  }, [loadResponses]);
 
   return (
     <div className="page-stack">
@@ -63,6 +73,14 @@ export default function MyResponsesPage() {
                   {item.actionType || "Manager response"}
                 </span>
                 <p>{item.response}</p>
+              </div>
+            ) : item.requiresResponse ? (
+              <div className="manager-response">
+                <span className="response-label">Awaiting response</span>
+                <p>
+                  This category requires a manager response. It will appear
+                  here once one is posted.
+                </p>
               </div>
             ) : null}
           </article>
