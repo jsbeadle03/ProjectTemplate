@@ -3,10 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { MoodPicker } from "@/components/mood-picker";
-import {
-  getCategories,
-  submitFeedback,
-} from "@/lib/mock-wafle-service";
+import { getCategories, submitFeedback } from "@/lib/wafle-api";
 
 export default function NewFeedbackPage() {
   const [categories, setCategories] = useState([]);
@@ -28,8 +25,12 @@ export default function NewFeedbackPage() {
     setSaving(true);
 
     try {
-      const result = await submitFeedback(categoryId, body, mood);
-      setMessage(result.message);
+      const result = await submitFeedback(categoryId, body);
+      setMessage(
+        result.requiresResponse
+          ? "Feedback shared. This category requires a manager response."
+          : "Feedback shared anonymously.",
+      );
       setBody("");
       setCategoryId("");
       setMood(null);

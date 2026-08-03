@@ -38,7 +38,7 @@ export default function LoginPage() {
     setBusy(true);
     setError("");
     await new Promise((resolve) => window.setTimeout(resolve, 280));
-    const result = logIn(nextEmail, nextPassword);
+    const result = await logIn(nextEmail, nextPassword);
     setBusy(false);
 
     if (!result.success) {

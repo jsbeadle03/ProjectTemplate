@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 
 const SESSION_KEY = "wafle-demo-session";
+const ANONYMOUS_ID_KEY = "wafle-anonymous-id";
 
 const demoUsers = {
   "employee@wafle.local": {
@@ -38,14 +39,31 @@ export function DemoSessionProvider({ children }) {
     return () => window.clearTimeout(timer);
   }, []);
 
-  function logIn(email, password) {
-    const account = demoUsers[email.trim().toLowerCase()];
+  async function logIn(email, password) {
+    const normalizedEmail = email.trim().toLowerCase();
+    const account = demoUsers[normalizedEmail];
 
     if (!account || account.password !== password) {
       return {
         success: false,
         message: "Use one of the demo accounts shown below.",
       };
+    }
+
+    // The anonymous id is the pseudonym already stored on the account, not a
+    // freshly generated one — feedback.anonymous_id has a foreign key into
+    // users.anonymous_id, so only that stable value can be written there.
+    try {
+      const res = await fetch(
+        `/api/session/anonymous-id?email=${encodeURIComponent(normalizedEmail)}`,
+      );
+      if (res.ok) {
+        const { anonymousId } = await res.json();
+        window.sessionStorage.setItem(ANONYMOUS_ID_KEY, anonymousId);
+      }
+    } catch {
+      // The demo session still works without a live database; feedback
+      // submission will simply fail until the anonymous id is available.
     }
 
     setUser(account.user);
@@ -56,6 +74,7 @@ export function DemoSessionProvider({ children }) {
   function logOut() {
     setUser(null);
     window.sessionStorage.removeItem(SESSION_KEY);
+    window.sessionStorage.removeItem(ANONYMOUS_ID_KEY);
   }
 
   const value = useMemo(
