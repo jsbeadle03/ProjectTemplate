@@ -4,8 +4,11 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { StatusBadge } from "@/components/status-badge";
-import { respondToFeedback } from "@/lib/mock-wafle-service";
-import { getFeedbackDetail, markFeedbackRead } from "@/lib/wafle-api";
+import {
+  getFeedbackDetail,
+  markFeedbackRead,
+  respondToFeedback,
+} from "@/lib/wafle-api";
 
 export default function FeedbackDetailPage() {
   const params = useParams();
@@ -159,6 +162,7 @@ export default function FeedbackDetailPage() {
                 <option>Investigating</option>
                 <option>Will do</option>
                 <option>Won&apos;t do</option>
+                <option>No action needed</option>
               </select>
             </label>
             <label className="field">

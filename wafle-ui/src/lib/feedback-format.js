@@ -55,7 +55,10 @@ export const FEEDBACK_SELECT = `SELECT
         WHERE fr.feedback_id = f.id) AS responseCount,
      (SELECT fr.response_text FROM feedback_responses fr
         WHERE fr.feedback_id = f.id
-        ORDER BY fr.created_at DESC LIMIT 1) AS response
+        ORDER BY fr.created_at DESC LIMIT 1) AS response,
+     (SELECT fr.action_type FROM feedback_responses fr
+        WHERE fr.feedback_id = f.id
+        ORDER BY fr.created_at DESC LIMIT 1) AS actionType
    FROM feedback f
    JOIN categories c ON f.category_id = c.id`;
 
@@ -79,6 +82,7 @@ export function toDetail(row) {
     isRead: Boolean(row.isRead),
     readAt: row.readAt ? toDateTimeLabel(row.readAt) : "",
     response: row.response ?? "",
+    actionType: row.actionType ?? "",
   };
 }
 
@@ -103,5 +107,6 @@ export function toManagerItem(row) {
     isRead: Boolean(row.isRead),
     readAt: row.readAt ? toDateTimeLabel(row.readAt) : "",
     response: row.response ?? "",
+    actionType: row.actionType ?? "",
   };
 }
