@@ -17,13 +17,15 @@ export default function FeedbackListPage() {
     getCategories().then(setCategories);
   }, []);
 
+  // Each keystroke now reaches MariaDB rather than the in-memory mock, so the
+  // search waits for a pause in typing before querying.
   useEffect(() => {
     const timer = window.setTimeout(() => {
-      getFeedbackList(categoryId, keyword, status).then((result) => {
+      getFeedbackList(categoryId, keyword.trim(), status).then((result) => {
         setItems(result);
         setLoading(false);
       });
-    }, 120);
+    }, 300);
 
     return () => window.clearTimeout(timer);
   }, [categoryId, keyword, status]);
@@ -35,8 +37,9 @@ export default function FeedbackListPage() {
     setStatus("all");
   };
 
+  const trimmedKeyword = keyword.trim();
   const filtersActive =
-    categoryId !== "all" || status !== "all" || keyword !== "";
+    categoryId !== "all" || status !== "all" || trimmedKeyword !== "";
 
   return (
     <div className="page-stack">
@@ -138,9 +141,28 @@ export default function FeedbackListPage() {
             </Link>
           ))}
           {!loading && items.length === 0 ? (
-            <div className="empty-state compact">
-              <h2>No matching feedback.</h2>
-              <p>Clear a filter or try a broader search.</p>
+            <div className="empty-state compact" role="status">
+              {trimmedKeyword ? (
+                <>
+                  <h2>
+                    No feedback mentions &ldquo;{trimmedKeyword}&rdquo;.
+                  </h2>
+                  <p>
+                    Try a different word, or clear the search to see all
+                    feedback.
+                  </p>
+                </>
+              ) : filtersActive ? (
+                <>
+                  <h2>No feedback matches these filters.</h2>
+                  <p>Clear a filter to widen the results.</p>
+                </>
+              ) : (
+                <>
+                  <h2>No feedback yet.</h2>
+                  <p>New submissions will appear here as they arrive.</p>
+                </>
+              )}
             </div>
           ) : null}
         </div>
