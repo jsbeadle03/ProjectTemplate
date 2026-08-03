@@ -126,6 +126,9 @@ export default function NewFeedbackPage() {
           <div className="form-privacy">
             <span className="privacy-orbit small" aria-hidden="true" />
             Your name is never attached to this feedback.
+            <Link className="text-link" href="/privacy">
+              Learn how →
+            </Link>
           </div>
           <button
             className="button button-primary"
