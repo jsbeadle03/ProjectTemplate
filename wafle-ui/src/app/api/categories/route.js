@@ -8,9 +8,14 @@ export async function GET() {
   try {
     const pool = getPool();
     const [rows] = await pool.query(
-      "SELECT id AS categoryId, name FROM categories ORDER BY name"
+      "SELECT id AS categoryId, name, requires_response AS requiresResponse FROM categories ORDER BY name"
     );
-    return NextResponse.json(rows);
+    const items = rows.map((row) => ({
+      categoryId: row.categoryId,
+      name: row.name,
+      requiresResponse: Boolean(row.requiresResponse),
+    }));
+    return NextResponse.json(items);
   } catch (error) {
     console.error("categories query failed", error);
     return NextResponse.json(
