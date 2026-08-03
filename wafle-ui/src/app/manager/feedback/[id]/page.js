@@ -4,11 +4,8 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { StatusBadge } from "@/components/status-badge";
-import {
-  acknowledgeFeedback,
-  getFeedbackDetail,
-  respondToFeedback,
-} from "@/lib/mock-wafle-service";
+import { respondToFeedback } from "@/lib/mock-wafle-service";
+import { getFeedbackDetail, markFeedbackRead } from "@/lib/wafle-api";
 
 export default function FeedbackDetailPage() {
   const params = useParams();
@@ -27,12 +24,21 @@ export default function FeedbackDetailPage() {
     });
   }, [params.id]);
 
-  async function handleAcknowledge() {
+  async function handleMarkAsRead() {
     setSaving(true);
-    const updated = await acknowledgeFeedback(item.feedbackId);
-    setItem(updated);
-    setMessage("Feedback acknowledged. The employee view now shows this status.");
-    setSaving(false);
+    setMessage("");
+    setError("");
+    try {
+      const updated = await markFeedbackRead(item.feedbackId);
+      setItem(updated);
+      setMessage(
+        "Marked as read. The employee view now shows that this was received.",
+      );
+    } catch (readError) {
+      setError(readError.message);
+    } finally {
+      setSaving(false);
+    }
   }
 
   async function handleResponse(event) {
@@ -102,6 +108,26 @@ export default function FeedbackDetailPage() {
           </div>
         </div>
         <blockquote>{item.body}</blockquote>
+        <div className="read-status-row">
+          {item.isRead ? (
+            <span className="read-receipt">
+              <span aria-hidden="true">✓</span>
+              Read{item.readAt ? ` on ${item.readAt}` : ""}
+            </span>
+          ) : (
+            <>
+              <span className="read-receipt muted">Not yet marked as read</span>
+              <button
+                className="button button-secondary button-small"
+                disabled={saving}
+                onClick={handleMarkAsRead}
+                type="button"
+              >
+                {saving ? "Saving…" : "Mark as read"}
+              </button>
+            </>
+          )}
+        </div>
         <aside className="identity-warning">
           <span className="privacy-orbit small" aria-hidden="true" />
           Employee identity is intentionally unavailable for this feedback.
@@ -111,7 +137,7 @@ export default function FeedbackDetailPage() {
       {item.response ? (
         <section className="surface existing-response">
           <span className="section-kicker">Published response</span>
-          <h2>{item.actionType}</h2>
+          <h2>{item.actionType || "Response posted"}</h2>
           <p>{item.response}</p>
         </section>
       ) : (
@@ -121,16 +147,6 @@ export default function FeedbackDetailPage() {
               <span className="section-kicker">Manager response</span>
               <h2>What happens next?</h2>
             </div>
-            {item.status === "New" ? (
-              <button
-                className="button button-secondary button-small"
-                disabled={saving}
-                onClick={handleAcknowledge}
-                type="button"
-              >
-                Acknowledge first
-              </button>
-            ) : null}
           </div>
 
           <form className="form-stack" onSubmit={handleResponse}>
