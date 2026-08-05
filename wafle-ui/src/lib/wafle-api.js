@@ -61,3 +61,28 @@ export async function getFeedbackList(categoryId, keyword, status) {
   }
   return res.json();
 }
+
+export async function getPublicFeedbackWall(categoryId = "all") {
+  const params = new URLSearchParams({ categoryId: categoryId ?? "all" });
+  const res = await fetch(`/api/wall?${params.toString()}`);
+  if (!res.ok) {
+    return [];
+  }
+  return res.json();
+}
+
+export async function reactToFeedback(feedbackId, reaction) {
+  const res = await fetch("/api/reactions", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      feedbackId,
+      reaction,
+      anonymousId: getAnonymousId(),
+    }),
+  });
+  if (!res.ok) {
+    throw new Error("Could not save your reaction.");
+  }
+  return res.json();
+}
