@@ -25,7 +25,7 @@ export default function NewFeedbackPage() {
     setSaving(true);
 
     try {
-      const result = await submitFeedback(categoryId, body);
+      const result = await submitFeedback(categoryId, body, mood);
       setMessage(
         result.requiresResponse
           ? "Feedback shared. This category requires a manager response."
@@ -80,12 +80,9 @@ export default function NewFeedbackPage() {
                 ))}
               </select>
             </label>
-            {selectedCategory ? (
+            {selectedCategory?.requiresResponse ? (
               <p className="field-hint">
-                {selectedCategory.description}
-                {selectedCategory.requiresResponse
-                  ? " A manager response is required for this topic."
-                  : ""}
+                A manager response is required for this topic.
               </p>
             ) : null}
           </div>

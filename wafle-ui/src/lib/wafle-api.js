@@ -49,7 +49,7 @@ export async function markFeedbackRead(feedbackId) {
   return res.json();
 }
 
-export async function submitFeedback(categoryId, content) {
+export async function submitFeedback(categoryId, content, moodScore) {
   const res = await fetch("/api/feedback", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -57,6 +57,7 @@ export async function submitFeedback(categoryId, content) {
       anonymousId: getAnonymousId(),
       categoryId,
       content,
+      moodScore: moodScore ?? null,
     }),
   });
 
