@@ -3,11 +3,16 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getDashboard } from "@/lib/mock-wafle-service";
-import { getCategories, setCategoryRequiresResponse } from "@/lib/wafle-api";
+import {
+  getCategories,
+  getPendingResponses,
+  setCategoryRequiresResponse,
+} from "@/lib/wafle-api";
 
 export default function ManagerDashboardPage() {
   const [dashboard, setDashboard] = useState(null);
   const [categories, setCategories] = useState([]);
+  const [pendingCount, setPendingCount] = useState(null);
   const [savingCategoryId, setSavingCategoryId] = useState(null);
   const [categoryMessage, setCategoryMessage] = useState("");
   const [categoryError, setCategoryError] = useState("");
@@ -15,6 +20,7 @@ export default function ManagerDashboardPage() {
   useEffect(() => {
     getDashboard().then(setDashboard);
     getCategories().then(setCategories);
+    getPendingResponses().then((items) => setPendingCount(items.length));
   }, []);
 
   async function handleRequiresResponseChange(category, requiresResponse) {
@@ -100,7 +106,10 @@ export default function ManagerDashboardPage() {
         <article className="surface metric-card">
           <span>Open feedback</span>
           <strong>{dashboard.openFeedback}</strong>
-          <small>3 items require a response</small>
+          <small>
+            {pendingCount === null ? "…" : pendingCount} items require a
+            response
+          </small>
         </article>
         <article className="surface metric-card">
           <span>Response rate</span>
@@ -205,7 +214,10 @@ export default function ManagerDashboardPage() {
         <section className="surface queue-teaser">
           <div>
             <span className="section-kicker">Action queue</span>
-            <h2>3 responses need attention.</h2>
+            <h2>
+              {pendingCount === null ? "…" : pendingCount} responses need
+              attention.
+            </h2>
           </div>
           <Link className="button button-dark" href="/manager/action-queue">
             Open queue
