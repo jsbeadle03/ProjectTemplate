@@ -53,6 +53,21 @@ export async function getFeedbackDetail(feedbackId) {
   return res.json();
 }
 
+export async function respondToFeedback(feedbackId, actionType, responseText) {
+  const res = await fetch(`/api/feedback/${feedbackId}/respond`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ actionType, responseText }),
+  });
+
+  if (!res.ok) {
+    const { error } = await res.json().catch(() => ({}));
+    throw new Error(error ?? "Choose an action and provide a clear response.");
+  }
+
+  return res.json();
+}
+
 export async function markFeedbackRead(feedbackId) {
   const res = await fetch(`/api/feedback/${feedbackId}/read`, {
     method: "POST",
