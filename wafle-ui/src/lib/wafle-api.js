@@ -6,6 +6,20 @@ export async function getCategories() {
   return res.json();
 }
 
+export async function setCategoryRequiresResponse(categoryId, requiresResponse) {
+  const res = await fetch(`/api/categories/${categoryId}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ requiresResponse }),
+  });
+
+  if (!res.ok) {
+    throw new Error("Could not update this category. Try again.");
+  }
+
+  return res.json();
+}
+
 const ANONYMOUS_ID_KEY = "wafle-anonymous-id";
 
 // Every seeded feedback row carries this anonymous id.

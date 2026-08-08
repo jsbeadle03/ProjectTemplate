@@ -3,13 +3,42 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getDashboard } from "@/lib/mock-wafle-service";
+import { getCategories, setCategoryRequiresResponse } from "@/lib/wafle-api";
 
 export default function ManagerDashboardPage() {
   const [dashboard, setDashboard] = useState(null);
+  const [categories, setCategories] = useState([]);
+  const [savingCategoryId, setSavingCategoryId] = useState(null);
+  const [categoryMessage, setCategoryMessage] = useState("");
+  const [categoryError, setCategoryError] = useState("");
 
   useEffect(() => {
     getDashboard().then(setDashboard);
+    getCategories().then(setCategories);
   }, []);
+
+  async function handleRequiresResponseChange(category, requiresResponse) {
+    setSavingCategoryId(category.categoryId);
+    setCategoryMessage("");
+    setCategoryError("");
+
+    try {
+      const updated = await setCategoryRequiresResponse(
+        category.categoryId,
+        requiresResponse,
+      );
+      setCategories((current) =>
+        current.map((item) =>
+          item.categoryId === updated.categoryId ? updated : item,
+        ),
+      );
+      setCategoryMessage(`${updated.name} updated.`);
+    } catch (error) {
+      setCategoryError(error.message);
+    } finally {
+      setSavingCategoryId(null);
+    }
+  }
 
   if (!dashboard) {
     return (
@@ -130,6 +159,40 @@ export default function ManagerDashboardPage() {
           </div>
         </section>
       </div>
+
+      <section className="surface category-card">
+        <div className="card-heading-row">
+          <div>
+            <span className="section-kicker">Response requirements</span>
+            <h2>Which categories need a reply?</h2>
+          </div>
+        </div>
+        <div className="category-bars">
+          {categories.map((category) => (
+            <label className="field-label-row" key={category.categoryId}>
+              <span>{category.name}</span>
+              <input
+                checked={category.requiresResponse}
+                disabled={savingCategoryId === category.categoryId}
+                onChange={(event) =>
+                  handleRequiresResponseChange(category, event.target.checked)
+                }
+                type="checkbox"
+              />
+            </label>
+          ))}
+        </div>
+        {categoryMessage ? (
+          <p className="form-message success" role="status">
+            {categoryMessage}
+          </p>
+        ) : null}
+        {categoryError ? (
+          <p className="form-message error" role="alert">
+            {categoryError}
+          </p>
+        ) : null}
+      </section>
 
       <div className="manager-lower-grid">
         <aside className="privacy-callout manager-privacy">
