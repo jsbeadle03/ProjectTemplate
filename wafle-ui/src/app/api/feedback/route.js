@@ -49,3 +49,59 @@ export async function GET(request) {
     );
   }
 }
+
+export async function POST(request) {
+  const body = await request.json();
+  const anonymousId = (body.anonymousId ?? "").trim();
+  const categoryId = Number(body.categoryId);
+  const content = (body.content ?? "").trim();
+
+  if (!anonymousId || !Number.isInteger(categoryId) || content.length < 12) {
+    return NextResponse.json(
+      { error: "Choose a category and share at least 12 characters." },
+      { status: 400 }
+    );
+  }
+
+  try {
+    const pool = getPool();
+
+    // The anonymous id has to belong to a real account, both because of the
+    // foreign key on feedback.anonymous_id and so a forged id can't be used
+    // to attribute feedback to someone else's pseudonym.
+    const [userRows] = await pool.query(
+      "SELECT 1 FROM users WHERE anonymous_id = ?",
+      [anonymousId]
+    );
+    if (userRows.length === 0) {
+      return NextResponse.json(
+        { error: "Unrecognized session. Please log in again." },
+        { status: 400 }
+      );
+    }
+
+    const [categoryRows] = await pool.query(
+      "SELECT requires_response AS requiresResponse FROM categories WHERE id = ?",
+      [categoryId]
+    );
+    if (categoryRows.length === 0) {
+      return NextResponse.json({ error: "Unknown category" }, { status: 400 });
+    }
+
+    const [result] = await pool.query(
+      "INSERT INTO feedback (anonymous_id, category_id, content) VALUES (?, ?, ?)",
+      [anonymousId, categoryId, content]
+    );
+
+    return NextResponse.json({
+      feedbackId: result.insertId,
+      requiresResponse: Boolean(categoryRows[0].requiresResponse),
+    });
+  } catch (error) {
+    console.error("feedback submission failed", error);
+    return NextResponse.json(
+      { error: "Could not share feedback" },
+      { status: 500 }
+    );
+  }
+}

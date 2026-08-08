@@ -49,6 +49,25 @@ export async function markFeedbackRead(feedbackId) {
   return res.json();
 }
 
+export async function submitFeedback(categoryId, content) {
+  const res = await fetch("/api/feedback", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      anonymousId: getAnonymousId(),
+      categoryId,
+      content,
+    }),
+  });
+
+  if (!res.ok) {
+    const { error } = await res.json().catch(() => ({}));
+    throw new Error(error ?? "Could not share feedback. Try again.");
+  }
+
+  return res.json();
+}
+
 export async function getFeedbackList(categoryId, keyword, status) {
   const params = new URLSearchParams({
     categoryId: categoryId ?? "all",
