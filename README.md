@@ -47,7 +47,13 @@ WAFLE_DB_USER=cis440sum26team10
 WAFLE_DB_PASSWORD=your-password
 ```
 
+`WAFLE_DB_*` is the canonical set read by both the connection pool
+(`wafle-ui/src/lib/db.js`) and this diagnostic page; `DATABASE_HOST` /
+`DATABASE_PORT` / `DATABASE_USER` / `DATABASE_PASSWORD` / `DATABASE_NAME` are
+accepted as a fallback for older `.env.local` files.
+
 Then run `npm run dev` from `wafle-ui` and open the route above. The TSX page
 opens a server-side connection, verifies the selected schema, runs a read-only
-`SELECT 1` probe, and closes the connection. The password is never sent to the
-browser or committed to the repository.
+`SELECT 1` probe, confirms every table the app depends on is present, and
+closes the connection. The password is never sent to the browser or committed
+to the repository.
