@@ -4,10 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { MoodPicker } from "@/components/mood-picker";
 import { useSession } from "@/context/session-context";
-import {
-  hasCheckedInToday,
-  submitMoodCheckIn,
-} from "@/lib/mock-wafle-service";
+import { getMoodCheckIn, submitMoodCheckIn } from "@/lib/wafle-api";
 
 export default function EmployeeHomePage() {
   const user = useSession();
@@ -18,8 +15,8 @@ export default function EmployeeHomePage() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    hasCheckedInToday().then((result) => {
-      setCheckedIn(result);
+    getMoodCheckIn().then((result) => {
+      setCheckedIn(result.checkedIn);
       setLoading(false);
     });
   }, []);
@@ -31,10 +28,15 @@ export default function EmployeeHomePage() {
     }
 
     setSaving(true);
-    const result = await submitMoodCheckIn(mood);
-    setCheckedIn(true);
-    setMessage(result.message);
-    setSaving(false);
+    try {
+      const result = await submitMoodCheckIn(mood);
+      setCheckedIn(true);
+      setMessage(result.message);
+    } catch (error) {
+      setMessage(error.message);
+    } finally {
+      setSaving(false);
+    }
   }
 
   const now = new Date();

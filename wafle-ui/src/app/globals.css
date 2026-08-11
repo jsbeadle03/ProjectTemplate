@@ -2682,3 +2682,55 @@ h3,
     transition-duration: 0.01ms !important;
   }
 }
+
+.category-admin-list {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 1.25rem;
+}
+
+.category-admin-row {
+  align-items: center;
+  display: grid;
+  gap: 0.6rem;
+  grid-template-columns: minmax(9rem, 1fr) minmax(10rem, 1.6fr) auto auto;
+}
+
+.category-admin-name,
+.category-admin-description {
+  background: var(--white);
+  border: 1px solid #dacbb8;
+  border-radius: var(--radius-sm);
+  color: var(--cocoa);
+  font: inherit;
+  font-size: 0.82rem;
+  padding: 0.6rem 0.75rem;
+  width: 100%;
+}
+
+.category-admin-toggle {
+  align-items: center;
+  color: var(--ink-muted);
+  display: flex;
+  font-size: 0.75rem;
+  font-weight: 700;
+  gap: 0.4rem;
+  white-space: nowrap;
+}
+
+.category-admin-new {
+  border-top: 1px solid var(--line);
+  margin-top: 0.9rem;
+  padding-top: 0.9rem;
+}
+
+@media (max-width: 720px) {
+  .category-admin-row {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.category-admin-actions {
+  display: flex;
+  gap: 0.4rem;
+}

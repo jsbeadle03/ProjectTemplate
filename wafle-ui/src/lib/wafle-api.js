@@ -6,18 +6,60 @@ export async function getCategories() {
   return res.json();
 }
 
-export async function setCategoryRequiresResponse(categoryId, requiresResponse) {
-  const res = await fetch(`/api/categories/${categoryId}`, {
-    method: "PATCH",
+async function send(url, method, body) {
+  const res = await fetch(url, {
+    method,
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ requiresResponse }),
+    body: JSON.stringify(body),
   });
 
   if (!res.ok) {
-    throw new Error("Could not update this category. Try again.");
+    const { error } = await res.json().catch(() => ({}));
+    throw new Error(error ?? "Something went wrong. Try again.");
   }
 
   return res.json();
+}
+
+export function updateCategory(categoryId, changes) {
+  return send(`/api/categories/${categoryId}`, "PATCH", changes);
+}
+
+export function createCategory(category) {
+  return send("/api/categories", "POST", category);
+}
+
+export async function deleteCategory(categoryId) {
+  const res = await fetch(`/api/categories/${categoryId}`, {
+    method: "DELETE",
+  });
+
+  if (!res.ok) {
+    const { error } = await res.json().catch(() => ({}));
+    throw new Error(error ?? "Could not delete this category.");
+  }
+
+  return res.json();
+}
+
+export async function getDashboard() {
+  const res = await fetch("/api/dashboard");
+  if (!res.ok) {
+    throw new Error("Could not load the dashboard.");
+  }
+  return res.json();
+}
+
+export async function getMoodCheckIn() {
+  const res = await fetch("/api/mood");
+  if (!res.ok) {
+    return { checkedIn: false, moodRating: null };
+  }
+  return res.json();
+}
+
+export function submitMoodCheckIn(moodRating) {
+  return send("/api/mood", "POST", { moodRating });
 }
 
 export async function getMyFeedback() {
