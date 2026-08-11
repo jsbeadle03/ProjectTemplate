@@ -49,6 +49,7 @@ export const FEEDBACK_SELECT = `SELECT
      f.created_at AS createdAt,
      c.id AS categoryId,
      c.name AS categoryName,
+     c.requires_response AS requiresResponse,
      (SELECT COUNT(*) FROM feedback_reactions r
         WHERE r.feedback_id = f.id AND r.reaction = 'like') AS upCount,
      (SELECT COUNT(*) FROM feedback_responses fr
@@ -83,6 +84,7 @@ export function toDetail(row) {
     readAt: row.readAt ? toDateTimeLabel(row.readAt) : "",
     response: row.response ?? "",
     actionType: row.actionType ?? "",
+    requiresResponse: Boolean(row.requiresResponse),
   };
 }
 
@@ -108,5 +110,6 @@ export function toManagerItem(row) {
     readAt: row.readAt ? toDateTimeLabel(row.readAt) : "",
     response: row.response ?? "",
     actionType: row.actionType ?? "",
+    requiresResponse: Boolean(row.requiresResponse),
   };
 }
