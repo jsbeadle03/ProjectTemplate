@@ -71,7 +71,12 @@ export const FEEDBACK_SELECT = `SELECT
    FROM feedback f
    JOIN categories c ON f.category_id = c.id`;
 
-export const DETAIL_QUERY = `${FEEDBACK_SELECT} WHERE f.id = ?`;
+// Every manager-facing query filters on f.manager_id, stamped when the feedback
+// was submitted. This is a security boundary, not a convenience filter: managers
+// sign themselves up, so a query that forgets it exposes another team's feedback
+// to anyone who registers.
+export const DETAIL_QUERY = `${FEEDBACK_SELECT}
+   WHERE f.id = ? AND f.manager_id = ?`;
 
 // An employee only ever sees their own submissions, matched on the anonymous
 // id rather than any column that could identify them.
@@ -80,11 +85,13 @@ export const MY_FEEDBACK_QUERY = `${FEEDBACK_SELECT}
    ORDER BY f.created_at DESC`;
 
 export const WALL_QUERY = `${FEEDBACK_SELECT}
-   WHERE (? = 'all' OR c.id = ?)
+   WHERE f.manager_id = ?
+     AND (? = 'all' OR c.id = ?)
    ORDER BY f.created_at DESC`;
 
 export const LIST_QUERY = `${FEEDBACK_SELECT}
-   WHERE (? = 'all' OR c.id = ?)
+   WHERE f.manager_id = ?
+     AND (? = 'all' OR c.id = ?)
      AND (? = '' OR f.content LIKE CONCAT('%', ?, '%') ESCAPE '!')
    ORDER BY f.created_at DESC`;
 

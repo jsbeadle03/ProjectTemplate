@@ -42,6 +42,39 @@ export async function deleteCategory(categoryId) {
   return res.json();
 }
 
+export async function getManagers() {
+  const res = await fetch("/api/managers");
+  if (!res.ok) {
+    return [];
+  }
+  return res.json();
+}
+
+export function changeMyManager(managerId) {
+  return send("/api/me/manager", "PATCH", { managerId });
+}
+
+export async function getTeam() {
+  const res = await fetch("/api/team");
+  if (!res.ok) {
+    return [];
+  }
+  return res.json();
+}
+
+export function acceptTeamMember(userId) {
+  return send(`/api/team/${userId}`, "PATCH", {});
+}
+
+export async function removeTeamMember(userId) {
+  const res = await fetch(`/api/team/${userId}`, { method: "DELETE" });
+  if (!res.ok) {
+    const { error } = await res.json().catch(() => ({}));
+    throw new Error(error ?? "Could not update your team.");
+  }
+  return res.json();
+}
+
 export async function getDashboard() {
   const res = await fetch("/api/dashboard");
   if (!res.ok) {
@@ -118,34 +151,35 @@ export async function submitFeedback(categoryId, content, moodScore) {
   return res.json();
 }
 
-export async function getPendingResponses() {
-  const res = await fetch("/api/pending-responses");
+// These three return { items, suppressed }: an empty list because a team is too
+// small to stay anonymous is not the same as a team with nothing to say, and the
+// UI has to be able to tell the difference.
+const EMPTY_FEED = { items: [], suppressed: false };
+
+async function getFeed(url) {
+  const res = await fetch(url);
   if (!res.ok) {
-    return [];
+    return EMPTY_FEED;
   }
   return res.json();
 }
 
-export async function getFeedbackList(categoryId, keyword, status) {
+export function getPendingResponses() {
+  return getFeed("/api/pending-responses");
+}
+
+export function getFeedbackList(categoryId, keyword, status) {
   const params = new URLSearchParams({
     categoryId: categoryId ?? "all",
     keyword: keyword ?? "",
     status: status ?? "all",
   });
-  const res = await fetch(`/api/feedback?${params.toString()}`);
-  if (!res.ok) {
-    return [];
-  }
-  return res.json();
+  return getFeed(`/api/feedback?${params.toString()}`);
 }
 
-export async function getPublicFeedbackWall(categoryId = "all") {
+export function getPublicFeedbackWall(categoryId = "all") {
   const params = new URLSearchParams({ categoryId: categoryId ?? "all" });
-  const res = await fetch(`/api/wall?${params.toString()}`);
-  if (!res.ok) {
-    return [];
-  }
-  return res.json();
+  return getFeed(`/api/wall?${params.toString()}`);
 }
 
 export async function reactToFeedback(feedbackId, reaction) {

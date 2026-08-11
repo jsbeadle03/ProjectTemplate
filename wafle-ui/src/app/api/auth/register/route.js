@@ -6,6 +6,7 @@ import {
   SESSION_COOKIE,
   sessionCookieOptions,
 } from "@/lib/session";
+import { ROLES } from "@/lib/team";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -27,6 +28,19 @@ export async function POST(request) {
   const email = (body.email ?? "").trim().toLowerCase();
   const password = body.password ?? "";
   const displayName = (body.displayName ?? "").trim();
+  const role = body.role;
+  const managerId = Number(body.managerId);
+
+  if (!ROLES.includes(role)) {
+    return NextResponse.json({ error: "Choose a role." }, { status: 400 });
+  }
+
+  if (role === "employee" && !(Number.isInteger(managerId) && managerId > 0)) {
+    return NextResponse.json(
+      { error: "Choose the manager you report to." },
+      { status: 400 },
+    );
+  }
 
   if (email.length > 255 || !EMAIL_PATTERN.test(email)) {
     return NextResponse.json(
@@ -60,16 +74,37 @@ export async function POST(request) {
       );
     }
 
+    if (role === "employee") {
+      const [managers] = await pool.query(
+        "SELECT 1 FROM users WHERE id = ? AND role = 'manager'",
+        [managerId],
+      );
+      if (managers.length === 0) {
+        return NextResponse.json(
+          { error: "Choose the manager you report to." },
+          { status: 400 },
+        );
+      }
+    }
+
     const anonymousId = crypto.randomUUID();
     const [result] = await pool.query(
-      `INSERT INTO users (email, password_hash, role, anonymous_id, display_name)
-       VALUES (?, ?, 'employee', ?, ?)`,
-      [email, await bcrypt.hash(password, 12), anonymousId, displayName],
+      `INSERT INTO users (email, password_hash, role, anonymous_id, display_name, manager_id, link_status)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [
+        email,
+        await bcrypt.hash(password, 12),
+        role,
+        anonymousId,
+        displayName,
+        role === "employee" ? managerId : null,
+        role === "employee" ? "pending" : null,
+      ],
     );
 
     const user = {
       id: result.insertId,
-      role: "employee",
+      role,
       anonymousId,
       displayName,
     };

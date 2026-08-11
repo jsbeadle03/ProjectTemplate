@@ -2,15 +2,24 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function RegisterPage() {
   const router = useRouter();
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [role, setRole] = useState("employee");
+  const [managerId, setManagerId] = useState("");
+  const [managers, setManagers] = useState([]);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/managers")
+      .then((res) => (res.ok ? res.json() : []))
+      .then(setManagers);
+  }, []);
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -20,7 +29,7 @@ export default function RegisterPage() {
     const res = await fetch("/api/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ displayName, email, password }),
+      body: JSON.stringify({ displayName, email, password, role, managerId }),
     });
 
     if (!res.ok) {
@@ -30,7 +39,7 @@ export default function RegisterPage() {
       return;
     }
 
-    router.push("/employee");
+    router.push(role === "manager" ? "/manager" : "/employee");
     router.refresh();
   }
 
@@ -70,6 +79,36 @@ export default function RegisterPage() {
           </div>
 
           <form className="form-stack" onSubmit={handleSubmit}>
+            <label className="field">
+              <span>I am joining as</span>
+              <select
+                onChange={(event) => setRole(event.target.value)}
+                value={role}
+              >
+                <option value="employee">An employee</option>
+                <option value="manager">A manager</option>
+              </select>
+            </label>
+            {role === "employee" ? (
+              <label className="field">
+                <span>My manager</span>
+                <select
+                  onChange={(event) => setManagerId(event.target.value)}
+                  required
+                  value={managerId}
+                >
+                  <option value="">Select your manager</option>
+                  {managers.map((manager) => (
+                    <option key={manager.id} value={manager.id}>
+                      {manager.displayName}
+                    </option>
+                  ))}
+                </select>
+                <small className="field-hint">
+                  They will need to accept you before you can share feedback.
+                </small>
+              </label>
+            ) : null}
             <label className="field">
               <span>Your name</span>
               <input

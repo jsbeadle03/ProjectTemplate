@@ -35,6 +35,7 @@ const navigation = {
       label: "Action queue",
       shortLabel: "Queue",
     },
+    { href: "/manager/team", label: "Team", shortLabel: "Team" },
   ],
 };
 

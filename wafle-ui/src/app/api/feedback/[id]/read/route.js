@@ -11,7 +11,8 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(request, { params }) {
-  if (!(await requireRole(request, "manager"))) {
+  const manager = await requireRole(request, "manager");
+  if (!manager) {
     return NextResponse.json({ error: "Not authorized" }, { status: 403 });
   }
 
@@ -27,16 +28,16 @@ export async function POST(request, { params }) {
 
     // COALESCE keeps the original timestamp if this feedback was already
     // acknowledged, so re-sending the action never rewrites when it was first
-    // read.
+    // read. The manager_id clause keeps one manager from touching another's.
     await pool.query(
       `UPDATE feedback
          SET is_read = 1,
              read_at = COALESCE(read_at, NOW())
-       WHERE id = ?`,
-      [feedbackId],
+       WHERE id = ? AND manager_id = ?`,
+      [feedbackId, manager.userId],
     );
 
-    const [rows] = await pool.query(DETAIL_QUERY, [feedbackId]);
+    const [rows] = await pool.query(DETAIL_QUERY, [feedbackId, manager.userId]);
 
     if (rows.length === 0) {
       return NextResponse.json(

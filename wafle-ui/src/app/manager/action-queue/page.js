@@ -4,14 +4,17 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { StatusBadge } from "@/components/status-badge";
 import { getPendingResponses } from "@/lib/wafle-api";
+import { MIN_SUBMITTERS } from "@/lib/team";
 
 export default function ActionQueuePage() {
   const [items, setItems] = useState([]);
+  const [suppressed, setSuppressed] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const loadQueue = useCallback(() => {
     getPendingResponses().then((result) => {
-      setItems(result);
+      setItems(result.items);
+      setSuppressed(result.suppressed);
       setLoading(false);
     });
   }, []);
@@ -84,11 +87,25 @@ export default function ActionQueuePage() {
         ))}
         {!loading && items.length === 0 ? (
           <div className="surface empty-state">
-            <span className="success-mark" aria-hidden="true">
-              ✓
-            </span>
-            <h2>The queue is clear.</h2>
-            <p>Every required-response item has a published next step.</p>
+            {suppressed ? (
+              <>
+                <span className="privacy-orbit" aria-hidden="true" />
+                <h2>Waiting for a few more voices.</h2>
+                <p>
+                  Feedback stays hidden until {MIN_SUBMITTERS} people on your
+                  team have shared something. Below that, you could work out who
+                  wrote what.
+                </p>
+              </>
+            ) : (
+              <>
+                <span className="success-mark" aria-hidden="true">
+                  ✓
+                </span>
+                <h2>The queue is clear.</h2>
+                <p>Every required-response item has a published next step.</p>
+              </>
+            )}
           </div>
         ) : null}
       </div>
