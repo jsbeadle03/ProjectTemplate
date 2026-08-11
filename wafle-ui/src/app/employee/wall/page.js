@@ -6,7 +6,7 @@ import {
   getCategories,
   getPublicFeedbackWall,
   reactToFeedback,
-} from "@/lib/mock-wafle-service";
+} from "@/lib/wafle-api";
 
 export default function FeedbackWallPage() {
   const [categories, setCategories] = useState([]);
@@ -26,10 +26,17 @@ export default function FeedbackWallPage() {
   }, [categoryId]);
 
   async function handleReaction(feedbackId, reaction) {
-    const updated = await reactToFeedback(feedbackId, reaction);
+    const result = await reactToFeedback(feedbackId, reaction);
     setItems((current) =>
       current.map((item) =>
-        item.feedbackId === updated.feedbackId ? updated : item,
+        item.feedbackId === result.feedbackId
+          ? {
+              ...item,
+              upCount: result.upCount,
+              downCount: result.downCount,
+              myReaction: result.myReaction,
+            }
+          : item,
       ),
     );
   }
@@ -94,6 +101,7 @@ export default function FeedbackWallPage() {
                 <span>Does this resonate?</span>
                 <button
                   aria-label={`Support feedback. ${item.upCount} supports`}
+                  aria-pressed={item.myReaction === "up"}
                   onClick={() => handleReaction(item.feedbackId, "up")}
                   type="button"
                 >
@@ -101,6 +109,7 @@ export default function FeedbackWallPage() {
                 </button>
                 <button
                   aria-label={`Do not support feedback. ${item.downCount} responses`}
+                  aria-pressed={item.myReaction === "down"}
                   onClick={() => handleReaction(item.feedbackId, "down")}
                   type="button"
                 >
