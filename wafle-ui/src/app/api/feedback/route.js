@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getPool } from "@/lib/db";
 import { FEEDBACK_SELECT, toManagerItem } from "@/lib/feedback-format";
+import { getSession, requireRole } from "@/lib/session";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -19,6 +20,10 @@ const LIST_QUERY = `${FEEDBACK_SELECT}
    ORDER BY f.created_at DESC`;
 
 export async function GET(request) {
+  if (!(await requireRole(request, "manager"))) {
+    return NextResponse.json({ error: "Not authorized" }, { status: 403 });
+  }
+
   const { searchParams } = new URL(request.url);
   const categoryId = searchParams.get("categoryId") ?? "all";
   const keyword = (searchParams.get("keyword") ?? "").trim();
@@ -56,6 +61,11 @@ const MIN_CONTENT_LENGTH = 12;
 const MAX_CONTENT_LENGTH = 800;
 
 export async function POST(request) {
+  const session = await getSession(request);
+  if (!session) {
+    return NextResponse.json({ error: "Sign in to continue" }, { status: 401 });
+  }
+
   let body;
 
   try {
@@ -64,7 +74,7 @@ export async function POST(request) {
     return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
   }
 
-  const anonymousId = (body.anonymousId ?? "").trim();
+  const anonymousId = session.anonymousId;
   const categoryId = Number(body.categoryId);
   const content = (body.content ?? "").trim();
   const moodScore =
@@ -103,20 +113,6 @@ export async function POST(request) {
   try {
     const pool = getPool();
 
-    // The anonymous id has to belong to a real account, both because of the
-    // foreign key on feedback.anonymous_id and so a forged id can't be used
-    // to attribute feedback to someone else's pseudonym.
-    const [userRows] = await pool.query(
-      "SELECT 1 FROM users WHERE anonymous_id = ?",
-      [anonymousId]
-    );
-    if (userRows.length === 0) {
-      return NextResponse.json(
-        { error: "Unrecognized session. Please log in again." },
-        { status: 400 }
-      );
-    }
-
     const [categoryRows] = await pool.query(
       "SELECT requires_response AS requiresResponse FROM categories WHERE id = ?",
       [categoryId]
@@ -130,9 +126,7 @@ export async function POST(request) {
       [anonymousId, categoryId, content]
     );
 
-    // The feedback table has no mood column, so the form's optional mood is
-    // recorded as its own check-in under the same anonymous id. The feedback
-    // is already saved by this point, so a mood failure is logged rather than
+    // The feedback is already saved, so a mood failure is logged rather than
     // failing a submission the employee has already made.
     if (moodScore !== null) {
       try {

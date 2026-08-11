@@ -1,14 +1,23 @@
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
-import { RoleGate } from "@/components/role-gate";
+import { SessionProvider } from "@/context/session-context";
+import { readSession, SESSION_COOKIE } from "@/lib/session";
 
 export const metadata = {
   title: "Manager workspace",
 };
 
-export default function ManagerLayout({ children }) {
+export default async function ManagerLayout({ children }) {
+  const session = await readSession((await cookies()).get(SESSION_COOKIE)?.value);
+
+  if (session?.role !== "manager") {
+    redirect(session ? "/employee" : "/login");
+  }
+
   return (
-    <RoleGate role="manager">
+    <SessionProvider user={session}>
       <AppShell>{children}</AppShell>
-    </RoleGate>
+    </SessionProvider>
   );
 }

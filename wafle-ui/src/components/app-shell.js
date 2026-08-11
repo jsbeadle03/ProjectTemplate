@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useDemoSession } from "@/context/demo-session-context";
+import { useSession } from "@/context/session-context";
 
 const navigation = {
   employee: [
@@ -48,12 +48,13 @@ function isActivePath(pathname, href) {
 export function AppShell({ children }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, logOut } = useDemoSession();
+  const user = useSession();
   const items = navigation[user.role];
 
-  function handleLogOut() {
-    logOut();
+  async function handleLogOut() {
+    await fetch("/api/auth/logout", { method: "POST" });
     router.push("/");
+    router.refresh();
   }
 
   return (
@@ -66,11 +67,6 @@ export function AppShell({ children }) {
           <span className="brand-mark" aria-hidden="true" />
           <span>Waflé</span>
         </Link>
-
-        <div className="demo-notice">
-          <span className="demo-dot" aria-hidden="true" />
-          Demo workspace
-        </div>
 
         <nav className="side-nav" aria-label={`${user.role} navigation`}>
           {items.map((item) => (
@@ -94,7 +90,7 @@ export function AppShell({ children }) {
           </div>
           <div>
             <strong>{user.displayName}</strong>
-            <span>{user.role === "manager" ? "Manager demo" : "Employee demo"}</span>
+            <span>{user.role === "manager" ? "Manager" : "Employee"}</span>
           </div>
           <button className="logout-link" onClick={handleLogOut} type="button">
             Log out
@@ -113,7 +109,7 @@ export function AppShell({ children }) {
           </Link>
           <span className="topbar-privacy">
             <span className="privacy-orbit small" aria-hidden="true" />
-            Privacy-first demo
+            Privacy-first feedback
           </span>
           <button className="topbar-avatar" onClick={handleLogOut} type="button">
             {user.displayName

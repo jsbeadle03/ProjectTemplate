@@ -3,14 +3,14 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { MoodPicker } from "@/components/mood-picker";
-import { useDemoSession } from "@/context/demo-session-context";
+import { useSession } from "@/context/session-context";
 import {
   hasCheckedInToday,
   submitMoodCheckIn,
 } from "@/lib/mock-wafle-service";
 
 export default function EmployeeHomePage() {
-  const { user } = useDemoSession();
+  const user = useSession();
   const [mood, setMood] = useState(null);
   const [checkedIn, setCheckedIn] = useState(false);
   const [loading, setLoading] = useState(true);
