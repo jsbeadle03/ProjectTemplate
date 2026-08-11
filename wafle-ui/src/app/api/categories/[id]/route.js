@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getPool } from "@/lib/db";
+import { requireRole } from "@/lib/session";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -10,6 +11,10 @@ function parseCategoryId(value) {
 }
 
 export async function PATCH(request, { params }) {
+  if (!(await requireRole(request, "manager"))) {
+    return NextResponse.json({ error: "Not authorized" }, { status: 403 });
+  }
+
   const { id } = await params;
   const categoryId = parseCategoryId(id);
 
@@ -17,7 +22,13 @@ export async function PATCH(request, { params }) {
     return NextResponse.json({ error: "Invalid category id" }, { status: 400 });
   }
 
-  const body = await request.json();
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+  }
+
   const requiresResponse = Boolean(body.requiresResponse);
 
   try {

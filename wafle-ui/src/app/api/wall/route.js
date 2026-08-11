@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getPool } from "@/lib/db";
+import { getSession } from "@/lib/session";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -27,6 +28,10 @@ function toDateLabel(value) {
 }
 
 export async function GET(request) {
+  if (!(await getSession(request))) {
+    return NextResponse.json({ error: "Sign in to continue" }, { status: 401 });
+  }
+
   const { searchParams } = new URL(request.url);
   const categoryId = searchParams.get("categoryId") ?? "all";
 

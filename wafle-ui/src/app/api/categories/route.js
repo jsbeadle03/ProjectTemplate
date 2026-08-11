@@ -1,10 +1,15 @@
 import { NextResponse } from "next/server";
 import { getPool } from "@/lib/db";
+import { getSession } from "@/lib/session";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(request) {
+  if (!(await getSession(request))) {
+    return NextResponse.json({ error: "Sign in to continue" }, { status: 401 });
+  }
+
   try {
     const pool = getPool();
     const [rows] = await pool.query(

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getPool } from "@/lib/db";
+import { getSession } from "@/lib/session";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -22,6 +23,11 @@ async function getCounts(pool, feedbackId) {
 }
 
 export async function POST(request) {
+  const session = await getSession(request);
+  if (!session) {
+    return NextResponse.json({ error: "Sign in to continue" }, { status: 401 });
+  }
+
   let payload;
   try {
     payload = await request.json();
@@ -31,9 +37,9 @@ export async function POST(request) {
 
   const feedbackId = Number(payload.feedbackId);
   const nextReaction = REACTION_MAP[payload.reaction];
-  const anonymousId = payload.anonymousId;
+  const anonymousId = session.anonymousId;
 
-  if (!feedbackId || !nextReaction || !anonymousId) {
+  if (!Number.isInteger(feedbackId) || feedbackId < 1 || !nextReaction) {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
 

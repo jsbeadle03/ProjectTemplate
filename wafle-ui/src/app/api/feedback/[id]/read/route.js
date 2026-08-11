@@ -1,11 +1,16 @@
 import { NextResponse } from "next/server";
 import { getPool } from "@/lib/db";
 import { DETAIL_QUERY, parseFeedbackId, toDetail } from "@/lib/feedback-format";
+import { requireRole } from "@/lib/session";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(request, { params }) {
+  if (!(await requireRole(request, "manager"))) {
+    return NextResponse.json({ error: "Not authorized" }, { status: 403 });
+  }
+
   const { id } = await params;
   const feedbackId = parseFeedbackId(id);
 

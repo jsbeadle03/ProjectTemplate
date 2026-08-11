@@ -1,5 +1,4 @@
 import "./globals.css";
-import { DemoSessionProvider } from "@/context/demo-session-context";
 
 export const metadata = {
   title: {
@@ -13,9 +12,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body>
-        <DemoSessionProvider>{children}</DemoSessionProvider>
-      </body>
+      <body>{children}</body>
     </html>
   );
 }

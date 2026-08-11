@@ -20,25 +20,8 @@ export async function setCategoryRequiresResponse(categoryId, requiresResponse) 
   return res.json();
 }
 
-const ANONYMOUS_ID_KEY = "wafle-anonymous-id";
-
-// Every seeded feedback row carries this anonymous id.
-const DEMO_ANONYMOUS_ID = "11111111-1111-1111-1111-111111111111";
-
-// Temporary bridge until anonymous session ids land in #21: an employee sees
-// the status of what they submitted without the app ever linking that feedback
-// to their name. Falls back to the seeded id so the demo shows live rows, and
-// picks up a real id automatically once #21 starts storing one.
-export function getAnonymousId() {
-  return (
-    window.sessionStorage.getItem(ANONYMOUS_ID_KEY) ?? DEMO_ANONYMOUS_ID
-  );
-}
-
 export async function getMyFeedback() {
-  const res = await fetch(
-    `/api/my-feedback?anonymousId=${encodeURIComponent(getAnonymousId())}`,
-  );
+  const res = await fetch("/api/my-feedback");
   if (!res.ok) {
     return [];
   }
@@ -82,12 +65,7 @@ export async function submitFeedback(categoryId, content, moodScore) {
   const res = await fetch("/api/feedback", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      anonymousId: getAnonymousId(),
-      categoryId,
-      content,
-      moodScore: moodScore ?? null,
-    }),
+    body: JSON.stringify({ categoryId, content, moodScore: moodScore ?? null }),
   });
 
   if (!res.ok) {
@@ -132,11 +110,7 @@ export async function reactToFeedback(feedbackId, reaction) {
   const res = await fetch("/api/reactions", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      feedbackId,
-      reaction,
-      anonymousId: getAnonymousId(),
-    }),
+    body: JSON.stringify({ feedbackId, reaction }),
   });
   if (!res.ok) {
     throw new Error("Could not save your reaction.");
