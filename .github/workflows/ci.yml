@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: wafle-ui
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: wafle-ui/package-lock.json
+
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm run build
+      # Database-backed tests skip themselves when WAFLE_DB_* is absent, so CI
+      # never touches the shared team database.
+      - run: npm test

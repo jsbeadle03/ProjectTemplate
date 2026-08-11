@@ -10,7 +10,8 @@
     "db:migrate": "node --env-file=.env.local scripts/migrate.mjs",
     "set-password": "node --env-file=.env.local scripts/set-password.mjs",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "test": "node --env-file-if-exists=.env.local --test \"tests/*.test.js\""
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

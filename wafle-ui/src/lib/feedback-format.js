@@ -8,9 +8,19 @@ export function toStatus(row) {
   return "New";
 }
 
-export function toDateLabel(value) {
+// `new Date(null)` is the epoch rather than an invalid date, so empty values
+// are rejected before parsing instead of rendering as "Dec 31, 1969".
+function toDate(value) {
+  if (value === null || value === undefined || value === "") {
+    return null;
+  }
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+export function toDateLabel(value) {
+  const date = toDate(value);
+  if (!date) {
     return "";
   }
   return date.toLocaleDateString("en-US", {
@@ -21,8 +31,8 @@ export function toDateLabel(value) {
 }
 
 export function toDateTimeLabel(value) {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
+  const date = toDate(value);
+  if (!date) {
     return "";
   }
   return date.toLocaleString("en-US", {
@@ -72,6 +82,18 @@ export const MY_FEEDBACK_QUERY = `${FEEDBACK_SELECT}
 export const WALL_QUERY = `${FEEDBACK_SELECT}
    WHERE (? = 'all' OR c.id = ?)
    ORDER BY f.created_at DESC`;
+
+export const LIST_QUERY = `${FEEDBACK_SELECT}
+   WHERE (? = 'all' OR c.id = ?)
+     AND (? = '' OR f.content LIKE CONCAT('%', ?, '%') ESCAPE '!')
+   ORDER BY f.created_at DESC`;
+
+// `%` and `_` are LIKE wildcards, so a search for "100%" would otherwise match
+// far more than the manager typed. `!` is the escape character rather than a
+// backslash, which would need doubling through MariaDB's parser too.
+export function escapeLikeTerm(value) {
+  return value.replace(/[!%_]/g, (character) => `!${character}`);
+}
 
 // Feedback ids arrive from the URL, so they are validated before querying.
 export function parseFeedbackId(value) {
