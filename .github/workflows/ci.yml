@@ -20,7 +20,10 @@ jobs:
           cache: npm
           cache-dependency-path: wafle-ui/package-lock.json
 
-      - run: npm ci
+      # `npm install`, not `npm ci`: the lockfile is written on Windows, and
+      # sharp's platform-specific optional deps make it fail a clean Linux
+      # install. The lockfile is still committed and still pins versions.
+      - run: npm install --no-audit --no-fund
       - run: npm run lint
       - run: npm run format:check
       - run: npm run build
