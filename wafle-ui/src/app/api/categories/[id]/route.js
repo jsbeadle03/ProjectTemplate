@@ -113,6 +113,11 @@ export async function DELETE(request, { params }) {
 
   try {
     const pool = getPool();
+    // Categories are shared across teams, so this deliberately counts every
+    // team's feedback: scoping it would let one manager delete a category
+    // another team is still using. The count itself is not reported back,
+    // since that would tell a manager how much feedback exists outside their
+    // own team.
     const [[{ inUse }]] = await pool.query(
       "SELECT COUNT(*) AS inUse FROM feedback WHERE category_id = ?",
       [categoryId],
@@ -121,7 +126,8 @@ export async function DELETE(request, { params }) {
     if (inUse > 0) {
       return NextResponse.json(
         {
-          error: `This category has ${inUse} piece(s) of feedback. Move or keep them before deleting it.`,
+          error:
+            "This category still has feedback attached. Rename it instead of deleting it.",
         },
         { status: 409 },
       );
