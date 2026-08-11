@@ -37,17 +37,28 @@ export default function EmployeeHomePage() {
     setSaving(false);
   }
 
+  const now = new Date();
   const firstName = user.displayName.split(" ")[0];
+  const hour = now.getHours();
+  const greeting =
+    hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+  const today = now.toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  });
 
   return (
     <div className="page-stack">
       <header className="page-heading home-heading">
         <div>
           <span className="eyebrow">Employee home</span>
-          <h1>Good morning, {firstName}.</h1>
+          <h1>
+            {greeting}, {firstName}.
+          </h1>
           <p>A quick check-in helps your team see the week more clearly.</p>
         </div>
-        <span className="date-pill">Wednesday · July 23</span>
+        <span className="date-pill">{today}</span>
       </header>
 
       <section className="surface checkin-card">

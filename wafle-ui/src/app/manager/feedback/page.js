@@ -103,7 +103,6 @@ export default function FeedbackListPage() {
             <option value="new">New</option>
             <option value="acknowledged">Acknowledged</option>
             <option value="responded">Responded</option>
-            <option value="closed">Closed</option>
           </select>
         </label>
         <button
