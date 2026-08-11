@@ -4,10 +4,12 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { StatusBadge } from "@/components/status-badge";
 import { getCategories, getFeedbackList } from "@/lib/wafle-api";
+import { MIN_SUBMITTERS } from "@/lib/team";
 
 export default function FeedbackListPage() {
   const [categories, setCategories] = useState([]);
   const [items, setItems] = useState([]);
+  const [suppressed, setSuppressed] = useState(false);
   const [categoryId, setCategoryId] = useState("all");
   const [status, setStatus] = useState("all");
   const [keyword, setKeyword] = useState("");
@@ -22,7 +24,8 @@ export default function FeedbackListPage() {
   useEffect(() => {
     const timer = window.setTimeout(() => {
       getFeedbackList(categoryId, keyword.trim(), status).then((result) => {
-        setItems(result);
+        setItems(result.items);
+        setSuppressed(result.suppressed);
         setLoading(false);
       });
     }, 300);
@@ -146,7 +149,16 @@ export default function FeedbackListPage() {
           ))}
           {!loading && items.length === 0 ? (
             <div className="empty-state compact" role="status">
-              {trimmedKeyword ? (
+              {suppressed ? (
+                <>
+                  <h2>Waiting for a few more voices.</h2>
+                  <p>
+                    Feedback stays hidden until {MIN_SUBMITTERS} people on your
+                    team have shared something. Below that, you could work out
+                    who wrote what.
+                  </p>
+                </>
+              ) : trimmedKeyword ? (
                 <>
                   <h2>No feedback mentions &ldquo;{trimmedKeyword}&rdquo;.</h2>
                   <p>

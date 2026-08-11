@@ -6,12 +6,14 @@ import {
   toFeedbackItem,
 } from "@/lib/feedback-format";
 import { requireRole } from "@/lib/session";
+import { hasEnoughSubmitters } from "@/lib/team";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(request, { params }) {
-  if (!(await requireRole(request, "manager"))) {
+  const manager = await requireRole(request, "manager");
+  if (!manager) {
     return NextResponse.json({ error: "Not authorized" }, { status: 403 });
   }
 
@@ -24,7 +26,15 @@ export async function GET(request, { params }) {
 
   try {
     const pool = getPool();
-    const [rows] = await pool.query(DETAIL_QUERY, [feedbackId]);
+
+    if (!(await hasEnoughSubmitters(pool, manager.userId))) {
+      return NextResponse.json(
+        { error: "Feedback not found" },
+        { status: 404 },
+      );
+    }
+
+    const [rows] = await pool.query(DETAIL_QUERY, [feedbackId, manager.userId]);
 
     if (rows.length === 0) {
       return NextResponse.json(

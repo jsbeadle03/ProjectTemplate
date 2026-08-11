@@ -6,12 +6,14 @@ import {
   toFeedbackItem,
 } from "@/lib/feedback-format";
 import { getSession, requireRole } from "@/lib/session";
+import { getAcceptedManagerId, hasEnoughSubmitters } from "@/lib/team";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(request) {
-  if (!(await requireRole(request, "manager"))) {
+  const manager = await requireRole(request, "manager");
+  if (!manager) {
     return NextResponse.json({ error: "Not authorized" }, { status: 403 });
   }
 
@@ -23,7 +25,13 @@ export async function GET(request) {
 
   try {
     const pool = getPool();
+
+    if (!(await hasEnoughSubmitters(pool, manager.userId))) {
+      return NextResponse.json({ items: [], suppressed: true });
+    }
+
     const [rows] = await pool.query(LIST_QUERY, [
+      manager.userId,
       categoryId,
       categoryId,
       searchTerm,
@@ -36,7 +44,7 @@ export async function GET(request) {
         (item) => status === "all" || item.status.toLowerCase() === status,
       );
 
-    return NextResponse.json(items);
+    return NextResponse.json({ items, suppressed: false });
   } catch (error) {
     console.error("feedback query failed", error);
     return NextResponse.json(
@@ -107,6 +115,16 @@ export async function POST(request) {
   try {
     const pool = getPool();
 
+    // Stamped onto the row so every manager-facing query can scope on it
+    // without joining back to users.
+    const managerId = await getAcceptedManagerId(pool, session.userId);
+    if (!managerId) {
+      return NextResponse.json(
+        { error: "Your manager has not accepted you yet." },
+        { status: 409 },
+      );
+    }
+
     const [categoryRows] = await pool.query(
       "SELECT requires_response AS requiresResponse FROM categories WHERE id = ?",
       [categoryId],
@@ -116,8 +134,8 @@ export async function POST(request) {
     }
 
     const [result] = await pool.query(
-      "INSERT INTO feedback (anonymous_id, category_id, content) VALUES (?, ?, ?)",
-      [anonymousId, categoryId, content],
+      "INSERT INTO feedback (anonymous_id, category_id, content, manager_id) VALUES (?, ?, ?, ?)",
+      [anonymousId, categoryId, content, managerId],
     );
 
     // The feedback is already saved, so a mood failure is logged rather than
@@ -125,8 +143,8 @@ export async function POST(request) {
     if (moodScore !== null) {
       try {
         await pool.query(
-          "INSERT INTO mood_checkins (anonymous_id, mood_rating) VALUES (?, ?)",
-          [anonymousId, moodScore],
+          "INSERT INTO mood_checkins (anonymous_id, mood_rating, manager_id) VALUES (?, ?, ?)",
+          [anonymousId, moodScore, managerId],
         );
       } catch (moodError) {
         console.error("mood check-in insert failed", moodError);

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getPool } from "@/lib/db";
 import { getSession } from "@/lib/session";
+import { getAcceptedManagerId } from "@/lib/team";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -67,8 +68,12 @@ export async function POST(request) {
     }
 
     await pool.query(
-      "INSERT INTO mood_checkins (anonymous_id, mood_rating) VALUES (?, ?)",
-      [session.anonymousId, moodRating],
+      "INSERT INTO mood_checkins (anonymous_id, mood_rating, manager_id) VALUES (?, ?, ?)",
+      [
+        session.anonymousId,
+        moodRating,
+        await getAcceptedManagerId(pool, session.userId),
+      ],
     );
 
     return NextResponse.json({

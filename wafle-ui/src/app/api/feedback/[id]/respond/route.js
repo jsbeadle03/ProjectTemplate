@@ -60,6 +60,19 @@ export async function POST(request, { params }) {
   try {
     const pool = getPool();
 
+    // Checked before writing anything: a manager must not be able to attach an
+    // official response to another team's feedback by guessing its id.
+    const [owned] = await pool.query(
+      "SELECT 1 FROM feedback WHERE id = ? AND manager_id = ?",
+      [feedbackId, manager.userId],
+    );
+    if (owned.length === 0) {
+      return NextResponse.json(
+        { error: "Feedback not found" },
+        { status: 404 },
+      );
+    }
+
     await pool.query(
       `INSERT INTO feedback_responses (feedback_id, responded_by, response_text, action_type)
        VALUES (?, ?, ?, ?)`,
@@ -70,11 +83,11 @@ export async function POST(request, { params }) {
       `UPDATE feedback
          SET is_read = 1,
              read_at = COALESCE(read_at, NOW())
-       WHERE id = ?`,
-      [feedbackId],
+       WHERE id = ? AND manager_id = ?`,
+      [feedbackId, manager.userId],
     );
 
-    const [rows] = await pool.query(DETAIL_QUERY, [feedbackId]);
+    const [rows] = await pool.query(DETAIL_QUERY, [feedbackId, manager.userId]);
 
     if (rows.length === 0) {
       return NextResponse.json(

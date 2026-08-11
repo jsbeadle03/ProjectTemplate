@@ -11,55 +11,64 @@ const MIN_PARTICIPANTS = 3;
 const WINDOW_DAYS = 14;
 
 export async function GET(request) {
-  if (!(await requireRole(request, "manager"))) {
+  const manager = await requireRole(request, "manager");
+  if (!manager) {
     return NextResponse.json({ error: "Not authorized" }, { status: 403 });
   }
 
   try {
     const pool = getPool();
 
+    const managerId = manager.userId;
+
     const [[mood]] = await pool.query(
       `SELECT AVG(mood_rating) AS average,
               COUNT(DISTINCT anonymous_id) AS participants
          FROM mood_checkins
-        WHERE created_at >= NOW() - INTERVAL ? DAY`,
-      [WINDOW_DAYS],
+        WHERE manager_id = ? AND created_at >= NOW() - INTERVAL ? DAY`,
+      [managerId, WINDOW_DAYS],
     );
 
     const [[previous]] = await pool.query(
       `SELECT AVG(mood_rating) AS average
          FROM mood_checkins
-        WHERE created_at >= NOW() - INTERVAL ? DAY
+        WHERE manager_id = ?
+          AND created_at >= NOW() - INTERVAL ? DAY
           AND created_at < NOW() - INTERVAL ? DAY`,
-      [WINDOW_DAYS * 2, WINDOW_DAYS],
+      [managerId, WINDOW_DAYS * 2, WINDOW_DAYS],
     );
 
     const [[employees]] = await pool.query(
-      "SELECT COUNT(*) AS total FROM users WHERE role = 'employee'",
+      "SELECT COUNT(*) AS total FROM users WHERE manager_id = ? AND link_status = 'accepted'",
+      [managerId],
     );
 
     const [[feedback]] = await pool.query(
       `SELECT COUNT(*) AS total,
               SUM(EXISTS (SELECT 1 FROM feedback_responses fr WHERE fr.feedback_id = f.id)) AS answered,
               SUM(NOT EXISTS (SELECT 1 FROM feedback_responses fr WHERE fr.feedback_id = f.id)) AS open
-         FROM feedback f`,
+         FROM feedback f
+        WHERE f.manager_id = ?`,
+      [managerId],
     );
 
     const [trend] = await pool.query(
       `SELECT DATE(created_at) AS day, AVG(mood_rating) AS average
          FROM mood_checkins
-        WHERE created_at >= NOW() - INTERVAL 7 DAY
+        WHERE manager_id = ? AND created_at >= NOW() - INTERVAL 7 DAY
         GROUP BY DATE(created_at)
         ORDER BY day`,
+      [managerId],
     );
 
     const [categories] = await pool.query(
       `SELECT c.name, COUNT(f.id) AS count
          FROM categories c
-         LEFT JOIN feedback f ON f.category_id = c.id
+         LEFT JOIN feedback f ON f.category_id = c.id AND f.manager_id = ?
         GROUP BY c.id, c.name
         HAVING count > 0
         ORDER BY count DESC, c.name`,
+      [managerId],
     );
 
     const participants = Number(mood.participants);

@@ -35,7 +35,9 @@ export default function ManagerDashboardPage() {
       .then(setDashboard)
       .catch(() => setDashboard(null));
     loadCategories();
-    getPendingResponses().then((items) => setPendingCount(items.length));
+    getPendingResponses().then((result) =>
+      setPendingCount(result.items.length),
+    );
   }, [loadCategories]);
 
   async function run(categoryId, action, successMessage) {

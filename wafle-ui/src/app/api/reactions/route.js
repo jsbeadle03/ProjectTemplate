@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getPool } from "@/lib/db";
 import { getSession } from "@/lib/session";
+import { getAcceptedManagerId } from "@/lib/team";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -45,6 +46,20 @@ export async function POST(request) {
 
   try {
     const pool = getPool();
+
+    // Only feedback from your own team can be reacted to, so a reaction cannot
+    // be used to probe whether a given feedback id exists elsewhere.
+    const managerId =
+      session.role === "manager"
+        ? session.userId
+        : await getAcceptedManagerId(pool, session.userId);
+    const [owned] = await pool.query(
+      "SELECT 1 FROM feedback WHERE id = ? AND manager_id = ?",
+      [feedbackId, managerId],
+    );
+    if (!managerId || owned.length === 0) {
+      return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+    }
 
     const [existingRows] = await pool.query(
       "SELECT reaction FROM feedback_reactions WHERE feedback_id = ? AND anonymous_id = ?",

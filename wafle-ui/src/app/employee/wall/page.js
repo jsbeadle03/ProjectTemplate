@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { StatusBadge } from "@/components/status-badge";
+import { MIN_SUBMITTERS } from "@/lib/team";
 import {
   getCategories,
   getPublicFeedbackWall,
@@ -12,6 +13,7 @@ export default function FeedbackWallPage() {
   const [categories, setCategories] = useState([]);
   const [categoryId, setCategoryId] = useState("all");
   const [items, setItems] = useState([]);
+  const [suppressed, setSuppressed] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -20,7 +22,8 @@ export default function FeedbackWallPage() {
 
   useEffect(() => {
     getPublicFeedbackWall(categoryId).then((result) => {
-      setItems(result);
+      setItems(result.items);
+      setSuppressed(result.suppressed);
       setLoading(false);
     });
   }, [categoryId]);
@@ -75,9 +78,22 @@ export default function FeedbackWallPage() {
           ) : null}
           {!loading && items.length === 0 ? (
             <div className="surface empty-state">
-              <span className="brand-mark" aria-hidden="true" />
-              <h2>No feedback in this topic yet.</h2>
-              <p>Choose another category or be the first to share.</p>
+              {suppressed ? (
+                <>
+                  <span className="privacy-orbit" aria-hidden="true" />
+                  <h2>Waiting for a few more voices.</h2>
+                  <p>
+                    The wall opens once {MIN_SUBMITTERS} people on your team
+                    have shared something, so no one can be singled out.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <span className="brand-mark" aria-hidden="true" />
+                  <h2>No feedback in this topic yet.</h2>
+                  <p>Choose another category or be the first to share.</p>
+                </>
+              )}
             </div>
           ) : null}
           {items.map((item) => (
