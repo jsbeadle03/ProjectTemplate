@@ -14,7 +14,7 @@ async function getCounts(pool, feedbackId) {
        COALESCE(SUM(reaction = 'dislike'), 0) AS downCount
      FROM feedback_reactions
      WHERE feedback_id = ?`,
-    [feedbackId]
+    [feedbackId],
   );
   return {
     upCount: Number(rows[0].upCount),
@@ -48,7 +48,7 @@ export async function POST(request) {
 
     const [existingRows] = await pool.query(
       "SELECT reaction FROM feedback_reactions WHERE feedback_id = ? AND anonymous_id = ?",
-      [feedbackId, anonymousId]
+      [feedbackId, anonymousId],
     );
     const current = existingRows.length > 0 ? existingRows[0].reaction : null;
 
@@ -56,19 +56,19 @@ export async function POST(request) {
     if (current === nextReaction) {
       await pool.query(
         "DELETE FROM feedback_reactions WHERE feedback_id = ? AND anonymous_id = ?",
-        [feedbackId, anonymousId]
+        [feedbackId, anonymousId],
       );
       myReaction = null;
     } else if (current) {
       await pool.query(
         "UPDATE feedback_reactions SET reaction = ? WHERE feedback_id = ? AND anonymous_id = ?",
-        [nextReaction, feedbackId, anonymousId]
+        [nextReaction, feedbackId, anonymousId],
       );
       myReaction = payload.reaction;
     } else {
       await pool.query(
         "INSERT INTO feedback_reactions (feedback_id, anonymous_id, reaction) VALUES (?, ?, ?)",
-        [feedbackId, anonymousId, nextReaction]
+        [feedbackId, anonymousId, nextReaction],
       );
       myReaction = payload.reaction;
     }
@@ -85,7 +85,7 @@ export async function POST(request) {
     console.error("reaction save failed", error);
     return NextResponse.json(
       { error: "Could not save your reaction" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

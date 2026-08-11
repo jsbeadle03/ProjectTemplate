@@ -48,8 +48,8 @@ export default function FeedbackListPage() {
           <span className="eyebrow">Feedback inbox</span>
           <h1>Listen, sort, and respond.</h1>
           <p>
-            Content is anonymous by design. No employee identity is available
-            in this view.
+            Content is anonymous by design. No employee identity is available in
+            this view.
           </p>
         </div>
       </header>
@@ -148,9 +148,7 @@ export default function FeedbackListPage() {
             <div className="empty-state compact" role="status">
               {trimmedKeyword ? (
                 <>
-                  <h2>
-                    No feedback mentions &ldquo;{trimmedKeyword}&rdquo;.
-                  </h2>
+                  <h2>No feedback mentions &ldquo;{trimmedKeyword}&rdquo;.</h2>
                   <p>
                     Try a different word, or clear the search to see all
                     feedback.

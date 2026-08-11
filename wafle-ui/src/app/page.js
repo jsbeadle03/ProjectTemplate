@@ -37,7 +37,9 @@ export default function Home() {
       <main>
         <section className="hero">
           <div className="hero-copy">
-            <span className="eyebrow">Anonymous input. Accountable action.</span>
+            <span className="eyebrow">
+              Anonymous input. Accountable action.
+            </span>
             <h1>
               Honest feedback
               <span> belongs at the table.</span>
@@ -82,7 +84,9 @@ export default function Home() {
                 ["5", "#5E9E6E"],
               ].map(([score, color]) => (
                 <span
-                  className={score === "4" ? "preview-mood active" : "preview-mood"}
+                  className={
+                    score === "4" ? "preview-mood active" : "preview-mood"
+                  }
                   key={score}
                   style={{ "--mood-color": color }}
                 >
@@ -122,7 +126,9 @@ export default function Home() {
 
         <section className="action-banner">
           <div>
-            <span className="eyebrow eyebrow-light">A better feedback loop</span>
+            <span className="eyebrow eyebrow-light">
+              A better feedback loop
+            </span>
             <h2>Say it safely. See what happens next.</h2>
           </div>
           <Link className="button button-cream" href="/login">

@@ -25,10 +25,15 @@ export default function ManagerDashboardPage() {
   // and a rejected edit cannot leave a value on screen that was never stored.
   const [revision, setRevision] = useState(0);
 
-  const loadCategories = useCallback(() => getCategories().then(setCategories), []);
+  const loadCategories = useCallback(
+    () => getCategories().then(setCategories),
+    [],
+  );
 
   useEffect(() => {
-    getDashboard().then(setDashboard).catch(() => setDashboard(null));
+    getDashboard()
+      .then(setDashboard)
+      .catch(() => setDashboard(null));
     loadCategories();
     getPendingResponses().then((items) => setPendingCount(items.length));
   }, [loadCategories]);
@@ -115,7 +120,9 @@ export default function ManagerDashboardPage() {
             >
               {[1, 2, 3, 4, 5].map((value) => (
                 <i
-                  className={value <= Math.round(dashboard.avgMood) ? "filled" : ""}
+                  className={
+                    value <= Math.round(dashboard.avgMood) ? "filled" : ""
+                  }
                   key={value}
                   aria-hidden="true"
                 />
@@ -280,12 +287,17 @@ export default function ManagerDashboardPage() {
           ))}
         </div>
 
-        <form className="category-admin-row category-admin-new" onSubmit={handleCreate}>
+        <form
+          className="category-admin-row category-admin-new"
+          onSubmit={handleCreate}
+        >
           <input
             aria-label="New category name"
             className="category-admin-name"
             maxLength={100}
-            onChange={(event) => setDraft({ ...draft, name: event.target.value })}
+            onChange={(event) =>
+              setDraft({ ...draft, name: event.target.value })
+            }
             placeholder="New category"
             required
             value={draft.name}

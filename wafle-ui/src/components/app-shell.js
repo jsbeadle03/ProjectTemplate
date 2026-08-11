@@ -111,7 +111,11 @@ export function AppShell({ children }) {
             <span className="privacy-orbit small" aria-hidden="true" />
             Privacy-first feedback
           </span>
-          <button className="topbar-avatar" onClick={handleLogOut} type="button">
+          <button
+            className="topbar-avatar"
+            onClick={handleLogOut}
+            type="button"
+          >
             {user.displayName
               .split(" ")
               .map((part) => part[0])

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getPool } from "@/lib/db";
-import { FEEDBACK_SELECT, toManagerItem } from "@/lib/feedback-format";
+import { FEEDBACK_SELECT, toFeedbackItem } from "@/lib/feedback-format";
 import { requireRole } from "@/lib/session";
 
 export const runtime = "nodejs";
@@ -21,12 +21,12 @@ export async function GET(request) {
   try {
     const pool = getPool();
     const [rows] = await pool.query(PENDING_QUERY);
-    return NextResponse.json(rows.map(toManagerItem));
+    return NextResponse.json(rows.map(toFeedbackItem));
   } catch (error) {
     console.error("pending responses query failed", error);
     return NextResponse.json(
       { error: "Could not load pending responses" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

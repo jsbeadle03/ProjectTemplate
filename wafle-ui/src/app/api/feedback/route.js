@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getPool } from "@/lib/db";
-import { FEEDBACK_SELECT, toManagerItem } from "@/lib/feedback-format";
+import { FEEDBACK_SELECT, toFeedbackItem } from "@/lib/feedback-format";
 import { getSession, requireRole } from "@/lib/session";
 
 export const runtime = "nodejs";
@@ -40,9 +40,9 @@ export async function GET(request) {
     ]);
 
     const items = rows
-      .map(toManagerItem)
+      .map(toFeedbackItem)
       .filter(
-        (item) => status === "all" || item.status.toLowerCase() === status
+        (item) => status === "all" || item.status.toLowerCase() === status,
       );
 
     return NextResponse.json(items);
@@ -50,7 +50,7 @@ export async function GET(request) {
     console.error("feedback query failed", error);
     return NextResponse.json(
       { error: "Could not load feedback" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -71,7 +71,10 @@ export async function POST(request) {
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid request body" },
+      { status: 400 },
+    );
   }
 
   const anonymousId = session.anonymousId;
@@ -89,14 +92,14 @@ export async function POST(request) {
   ) {
     return NextResponse.json(
       { error: "Choose a category and share at least 12 characters." },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
   if (content.length > MAX_CONTENT_LENGTH) {
     return NextResponse.json(
       { error: `Keep feedback under ${MAX_CONTENT_LENGTH} characters.` },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -106,7 +109,7 @@ export async function POST(request) {
   ) {
     return NextResponse.json(
       { error: "Mood must be between 1 and 5." },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -115,7 +118,7 @@ export async function POST(request) {
 
     const [categoryRows] = await pool.query(
       "SELECT requires_response AS requiresResponse FROM categories WHERE id = ?",
-      [categoryId]
+      [categoryId],
     );
     if (categoryRows.length === 0) {
       return NextResponse.json({ error: "Unknown category" }, { status: 400 });
@@ -123,7 +126,7 @@ export async function POST(request) {
 
     const [result] = await pool.query(
       "INSERT INTO feedback (anonymous_id, category_id, content) VALUES (?, ?, ?)",
-      [anonymousId, categoryId, content]
+      [anonymousId, categoryId, content],
     );
 
     // The feedback is already saved, so a mood failure is logged rather than
@@ -132,7 +135,7 @@ export async function POST(request) {
       try {
         await pool.query(
           "INSERT INTO mood_checkins (anonymous_id, mood_rating) VALUES (?, ?)",
-          [anonymousId, moodScore]
+          [anonymousId, moodScore],
         );
       } catch (moodError) {
         console.error("mood check-in insert failed", moodError);
@@ -147,7 +150,7 @@ export async function POST(request) {
     console.error("feedback submission failed", error);
     return NextResponse.json(
       { error: "Could not share feedback" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

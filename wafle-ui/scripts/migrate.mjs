@@ -5,7 +5,12 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import mysql from "mysql2/promise";
 
-const migrations = join(dirname(fileURLToPath(import.meta.url)), "..", "db", "migrations");
+const migrations = join(
+  dirname(fileURLToPath(import.meta.url)),
+  "..",
+  "db",
+  "migrations",
+);
 
 const connection = await mysql.createConnection({
   host: process.env.WAFLE_DB_HOST,
@@ -16,7 +21,9 @@ const connection = await mysql.createConnection({
   multipleStatements: true,
 });
 
-for (const file of (await readdir(migrations)).filter((n) => n.endsWith(".sql")).sort()) {
+for (const file of (await readdir(migrations))
+  .filter((n) => n.endsWith(".sql"))
+  .sort()) {
   await connection.query(await readFile(join(migrations, file), "utf8"));
   console.log(`applied ${file}`);
 }

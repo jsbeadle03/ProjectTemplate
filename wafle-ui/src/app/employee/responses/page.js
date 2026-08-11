@@ -78,8 +78,8 @@ export default function MyResponsesPage() {
               <div className="manager-response">
                 <span className="response-label">Awaiting response</span>
                 <p>
-                  This category requires a manager response. It will appear
-                  here once one is posted.
+                  This category requires a manager response. It will appear here
+                  once one is posted.
                 </p>
               </div>
             ) : null}
