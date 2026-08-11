@@ -85,6 +85,12 @@ export async function POST(request, { params }) {
 
     return NextResponse.json(toFeedbackItem(rows[0]));
   } catch (error) {
+    if (error.code === "ER_NO_REFERENCED_ROW_2") {
+      return NextResponse.json(
+        { error: "Feedback not found" },
+        { status: 404 },
+      );
+    }
     console.error("feedback response failed", error);
     return NextResponse.json(
       { error: "Could not post response" },
