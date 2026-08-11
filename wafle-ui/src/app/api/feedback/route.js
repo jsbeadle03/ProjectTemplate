@@ -1,23 +1,14 @@
 import { NextResponse } from "next/server";
 import { getPool } from "@/lib/db";
-import { FEEDBACK_SELECT, toFeedbackItem } from "@/lib/feedback-format";
+import {
+  escapeLikeTerm,
+  LIST_QUERY,
+  toFeedbackItem,
+} from "@/lib/feedback-format";
 import { getSession, requireRole } from "@/lib/session";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-// `%` and `_` are LIKE wildcards, so a search for "100%" would otherwise
-// match far more than the manager typed. Escaping keeps the term literal.
-// `!` is the escape character rather than a backslash, which would need
-// doubling through both the template literal and MariaDB's parser.
-function escapeLikeTerm(value) {
-  return value.replace(/[!%_]/g, (character) => `!${character}`);
-}
-
-const LIST_QUERY = `${FEEDBACK_SELECT}
-   WHERE (? = 'all' OR c.id = ?)
-     AND (? = '' OR f.content LIKE CONCAT('%', ?, '%') ESCAPE '!')
-   ORDER BY f.created_at DESC`;
 
 export async function GET(request) {
   if (!(await requireRole(request, "manager"))) {
