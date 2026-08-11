@@ -50,15 +50,52 @@ export async function GET(request) {
   }
 }
 
+// The submission form advertises a 12-800 character range, so the API holds
+// employees to the same bounds rather than trusting the textarea's maxLength.
+const MIN_CONTENT_LENGTH = 12;
+const MAX_CONTENT_LENGTH = 800;
+
 export async function POST(request) {
-  const body = await request.json();
+  let body;
+
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+  }
+
   const anonymousId = (body.anonymousId ?? "").trim();
   const categoryId = Number(body.categoryId);
   const content = (body.content ?? "").trim();
+  const moodScore =
+    body.moodScore === null || body.moodScore === undefined
+      ? null
+      : Number(body.moodScore);
 
-  if (!anonymousId || !Number.isInteger(categoryId) || content.length < 12) {
+  if (
+    !anonymousId ||
+    !Number.isInteger(categoryId) ||
+    content.length < MIN_CONTENT_LENGTH
+  ) {
     return NextResponse.json(
       { error: "Choose a category and share at least 12 characters." },
+      { status: 400 }
+    );
+  }
+
+  if (content.length > MAX_CONTENT_LENGTH) {
+    return NextResponse.json(
+      { error: `Keep feedback under ${MAX_CONTENT_LENGTH} characters.` },
+      { status: 400 }
+    );
+  }
+
+  if (
+    moodScore !== null &&
+    !(Number.isInteger(moodScore) && moodScore >= 1 && moodScore <= 5)
+  ) {
+    return NextResponse.json(
+      { error: "Mood must be between 1 and 5." },
       { status: 400 }
     );
   }
@@ -92,6 +129,21 @@ export async function POST(request) {
       "INSERT INTO feedback (anonymous_id, category_id, content) VALUES (?, ?, ?)",
       [anonymousId, categoryId, content]
     );
+
+    // The feedback table has no mood column, so the form's optional mood is
+    // recorded as its own check-in under the same anonymous id. The feedback
+    // is already saved by this point, so a mood failure is logged rather than
+    // failing a submission the employee has already made.
+    if (moodScore !== null) {
+      try {
+        await pool.query(
+          "INSERT INTO mood_checkins (anonymous_id, mood_rating) VALUES (?, ?)",
+          [anonymousId, moodScore]
+        );
+      } catch (moodError) {
+        console.error("mood check-in insert failed", moodError);
+      }
+    }
 
     return NextResponse.json({
       feedbackId: result.insertId,
