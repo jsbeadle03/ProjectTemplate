@@ -33,7 +33,7 @@ export default function PrivacyPage() {
         <nav className="public-nav" aria-label="Public navigation">
           <Link href="/">Home</Link>
           <Link className="button button-small button-dark" href="/login">
-            Open demo
+            Log in
           </Link>
         </nav>
       </header>
@@ -66,7 +66,7 @@ export default function PrivacyPage() {
             <h2>Your honesty is safe here.</h2>
           </div>
           <Link className="button button-cream" href="/login">
-            Enter the demo
+            Get started
           </Link>
         </section>
       </main>

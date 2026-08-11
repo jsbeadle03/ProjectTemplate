@@ -29,7 +29,7 @@ export default function Home() {
         <nav className="public-nav" aria-label="Public navigation">
           <a href="#how-it-works">How it works</a>
           <Link className="button button-small button-dark" href="/login">
-            Open demo
+            Log in
           </Link>
         </nav>
       </header>
@@ -48,7 +48,7 @@ export default function Home() {
             </p>
             <div className="hero-actions">
               <Link className="button button-primary" href="/login">
-                Explore the demo
+                Get started
               </Link>
               <a className="text-link" href="#how-it-works">
                 See how privacy works <span aria-hidden="true">↓</span>
@@ -68,7 +68,7 @@ export default function Home() {
                 <span className="micro-label">TODAY&apos;S CHECK-IN</span>
                 <h2>How are you feeling?</h2>
               </div>
-              <span className="demo-chip">Private</span>
+              <span className="privacy-pill">Private</span>
             </div>
             <p className="preview-copy">
               Choose the waffle that best matches your day.
@@ -126,7 +126,7 @@ export default function Home() {
             <h2>Say it safely. See what happens next.</h2>
           </div>
           <Link className="button button-cream" href="/login">
-            Enter the demo
+            Get started
           </Link>
         </section>
       </main>
