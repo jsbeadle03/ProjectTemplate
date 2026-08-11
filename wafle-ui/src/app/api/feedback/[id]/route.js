@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { getPool } from "@/lib/db";
-import { DETAIL_QUERY, parseFeedbackId, toDetail } from "@/lib/feedback-format";
+import {
+  DETAIL_QUERY,
+  parseFeedbackId,
+  toFeedbackItem,
+} from "@/lib/feedback-format";
 import { requireRole } from "@/lib/session";
 
 export const runtime = "nodejs";
@@ -29,7 +33,7 @@ export async function GET(request, { params }) {
       );
     }
 
-    return NextResponse.json(toDetail(rows[0]));
+    return NextResponse.json(toFeedbackItem(rows[0]));
   } catch (error) {
     console.error("feedback detail query failed", error);
     return NextResponse.json(

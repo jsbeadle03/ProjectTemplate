@@ -74,7 +74,8 @@ export async function GET(request) {
     );
 
     return NextResponse.json({
-      avgMood: hasEnough && average !== null ? Number(average.toFixed(1)) : null,
+      avgMood:
+        hasEnough && average !== null ? Number(average.toFixed(1)) : null,
       moodChange:
         hasEnough && average !== null && previousAverage !== null
           ? `${average >= previousAverage ? "+" : ""}${(average - previousAverage).toFixed(1)}`

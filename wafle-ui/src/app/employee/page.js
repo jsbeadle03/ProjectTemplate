@@ -85,9 +85,7 @@ export default function EmployeeHomePage() {
             </span>
             <div>
               <h3>You&apos;re checked in.</h3>
-              <p>
-                Thanks for making the team picture a little clearer today.
-              </p>
+              <p>Thanks for making the team picture a little clearer today.</p>
             </div>
           </div>
         ) : (
@@ -95,7 +93,9 @@ export default function EmployeeHomePage() {
             <MoodPicker onChange={setMood} value={mood} />
             <div className="checkin-actions">
               <p
-                className={message ? "inline-message visible" : "inline-message"}
+                className={
+                  message ? "inline-message visible" : "inline-message"
+                }
                 role="status"
               >
                 {message || "Your selection stays private."}
@@ -118,8 +118,8 @@ export default function EmployeeHomePage() {
           <span className="section-kicker">Have something to share?</span>
           <h2>Turn a thought into feedback.</h2>
           <p>
-            Choose a topic, explain what is happening, and optionally add how
-            it makes you feel.
+            Choose a topic, explain what is happening, and optionally add how it
+            makes you feel.
           </p>
           <Link className="button button-dark" href="/employee/feedback/new">
             Share feedback

@@ -25,7 +25,10 @@ export async function PATCH(request, { params }) {
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid request body" },
+      { status: 400 },
+    );
   }
 
   const updates = [];
@@ -76,7 +79,10 @@ export async function PATCH(request, { params }) {
     ]);
 
     if (rows.length === 0) {
-      return NextResponse.json({ error: "Category not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Category not found" },
+        { status: 404 },
+      );
     }
 
     return NextResponse.json(toCategory(rows[0]));
@@ -126,7 +132,10 @@ export async function DELETE(request, { params }) {
     ]);
 
     if (result.affectedRows === 0) {
-      return NextResponse.json({ error: "Category not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Category not found" },
+        { status: 404 },
+      );
     }
 
     return NextResponse.json({ categoryId });

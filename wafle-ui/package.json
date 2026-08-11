@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "eslint",
     "db:migrate": "node --env-file=.env.local scripts/migrate.mjs",
-    "set-password": "node --env-file=.env.local scripts/set-password.mjs"
+    "set-password": "node --env-file=.env.local scripts/set-password.mjs",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
@@ -19,6 +21,7 @@
   },
   "devDependencies": {
     "eslint": "^9",
-    "eslint-config-next": "^16.3.0"
+    "eslint-config-next": "^16.3.0",
+    "prettier": "3.9.6"
   }
 }

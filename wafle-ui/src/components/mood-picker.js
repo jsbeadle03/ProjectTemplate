@@ -17,7 +17,9 @@ export function MoodPicker({ value, onChange, compact = false }) {
           <button
             aria-label={`${mood.score}: ${mood.label}`}
             aria-pressed={value === mood.score}
-            className={value === mood.score ? "mood-tile selected" : "mood-tile"}
+            className={
+              value === mood.score ? "mood-tile selected" : "mood-tile"
+            }
             key={mood.score}
             onClick={() => onChange(mood.score)}
             style={{ "--mood-color": mood.color }}

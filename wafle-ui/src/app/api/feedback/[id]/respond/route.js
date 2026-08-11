@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { getPool } from "@/lib/db";
-import { DETAIL_QUERY, parseFeedbackId, toDetail } from "@/lib/feedback-format";
+import {
+  DETAIL_QUERY,
+  parseFeedbackId,
+  toFeedbackItem,
+} from "@/lib/feedback-format";
 import { requireRole } from "@/lib/session";
 
 export const runtime = "nodejs";
@@ -33,7 +37,10 @@ export async function POST(request, { params }) {
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid request body" },
+      { status: 400 },
+    );
   }
 
   const actionType = body.actionType;
@@ -70,10 +77,13 @@ export async function POST(request, { params }) {
     const [rows] = await pool.query(DETAIL_QUERY, [feedbackId]);
 
     if (rows.length === 0) {
-      return NextResponse.json({ error: "Feedback not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Feedback not found" },
+        { status: 404 },
+      );
     }
 
-    return NextResponse.json(toDetail(rows[0]));
+    return NextResponse.json(toFeedbackItem(rows[0]));
   } catch (error) {
     console.error("feedback response failed", error);
     return NextResponse.json(

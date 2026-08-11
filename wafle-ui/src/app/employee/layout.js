@@ -9,7 +9,9 @@ export const metadata = {
 };
 
 export default async function EmployeeLayout({ children }) {
-  const session = await readSession((await cookies()).get(SESSION_COOKIE)?.value);
+  const session = await readSession(
+    (await cookies()).get(SESSION_COOKIE)?.value,
+  );
 
   if (session?.role !== "employee") {
     redirect(session ? "/manager" : "/login");

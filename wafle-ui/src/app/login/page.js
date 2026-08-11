@@ -42,7 +42,9 @@ export default function LoginPage() {
           <span>Waflé</span>
         </Link>
         <div className="auth-brand-copy">
-          <span className="eyebrow eyebrow-light">Safe space, clear next step</span>
+          <span className="eyebrow eyebrow-light">
+            Safe space, clear next step
+          </span>
           <h1>A little honesty can change the whole recipe.</h1>
           <p>
             Share what is working and what needs attention, without your name
@@ -110,7 +112,10 @@ export default function LoginPage() {
             <span>new to Waflé?</span>
           </div>
 
-          <Link className="button button-secondary button-full" href="/register">
+          <Link
+            className="button button-secondary button-full"
+            href="/register"
+          >
             Create an account
           </Link>
         </div>

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getPool } from "@/lib/db";
-import { MY_FEEDBACK_QUERY, toDetail } from "@/lib/feedback-format";
+import { MY_FEEDBACK_QUERY, toFeedbackItem } from "@/lib/feedback-format";
 import { getSession } from "@/lib/session";
 
 export const runtime = "nodejs";
@@ -15,7 +15,7 @@ export async function GET(request) {
   try {
     const pool = getPool();
     const [rows] = await pool.query(MY_FEEDBACK_QUERY, [session.anonymousId]);
-    return NextResponse.json(rows.map(toDetail));
+    return NextResponse.json(rows.map(toFeedbackItem));
   } catch (error) {
     console.error("my feedback query failed", error);
     return NextResponse.json(

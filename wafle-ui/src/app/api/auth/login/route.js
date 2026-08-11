@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { getPool } from "@/lib/db";
-import { createSession, SESSION_COOKIE, sessionCookieOptions } from "@/lib/session";
+import {
+  createSession,
+  SESSION_COOKIE,
+  sessionCookieOptions,
+} from "@/lib/session";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -15,7 +19,10 @@ export async function POST(request) {
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid request body" },
+      { status: 400 },
+    );
   }
 
   const email = (body.email ?? "").trim().toLowerCase();
@@ -46,10 +53,17 @@ export async function POST(request) {
       displayName: account.displayName,
     };
     const response = NextResponse.json(user);
-    response.cookies.set(SESSION_COOKIE, await createSession(user), sessionCookieOptions);
+    response.cookies.set(
+      SESSION_COOKIE,
+      await createSession(user),
+      sessionCookieOptions,
+    );
     return response;
   } catch (error) {
     console.error("login failed", error);
-    return NextResponse.json({ error: "Could not sign you in" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Could not sign you in" },
+      { status: 500 },
+    );
   }
 }

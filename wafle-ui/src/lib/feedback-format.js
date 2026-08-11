@@ -1,7 +1,3 @@
-// Shared query and shaping helpers for the feedback API routes, so the inbox,
-// the detail view, and the acknowledge action all derive status, dates, and
-// read state the same way.
-
 export function toStatus(row) {
   if (Number(row.responseCount) > 0) {
     return "Responded";
@@ -52,6 +48,8 @@ export const FEEDBACK_SELECT = `SELECT
      c.requires_response AS requiresResponse,
      (SELECT COUNT(*) FROM feedback_reactions r
         WHERE r.feedback_id = f.id AND r.reaction = 'like') AS upCount,
+     (SELECT COUNT(*) FROM feedback_reactions r
+        WHERE r.feedback_id = f.id AND r.reaction = 'dislike') AS downCount,
      (SELECT COUNT(*) FROM feedback_responses fr
         WHERE fr.feedback_id = f.id) AS responseCount,
      (SELECT fr.response_text FROM feedback_responses fr
@@ -71,22 +69,9 @@ export const MY_FEEDBACK_QUERY = `${FEEDBACK_SELECT}
    WHERE f.anonymous_id = ?
    ORDER BY f.created_at DESC`;
 
-export function toDetail(row) {
-  return {
-    feedbackId: row.feedbackId,
-    categoryId: row.categoryId,
-    categoryName: row.categoryName,
-    body: row.body,
-    status: toStatus(row),
-    upCount: Number(row.upCount),
-    submittedAt: toDateLabel(row.createdAt),
-    isRead: Boolean(row.isRead),
-    readAt: row.readAt ? toDateTimeLabel(row.readAt) : "",
-    response: row.response ?? "",
-    actionType: row.actionType ?? "",
-    requiresResponse: Boolean(row.requiresResponse),
-  };
-}
+export const WALL_QUERY = `${FEEDBACK_SELECT}
+   WHERE (? = 'all' OR c.id = ?)
+   ORDER BY f.created_at DESC`;
 
 // Feedback ids arrive from the URL, so they are validated before querying.
 export function parseFeedbackId(value) {
@@ -94,10 +79,10 @@ export function parseFeedbackId(value) {
   return Number.isInteger(feedbackId) && feedbackId > 0 ? feedbackId : null;
 }
 
-// Whitelists exactly the fields a manager view is allowed to render, so a
-// column added to FEEDBACK_SELECT later can never leak into a manager
-// response just by being present on the row.
-export function toManagerItem(row) {
+// Whitelists exactly the fields a view is allowed to render, so a column added
+// to FEEDBACK_SELECT later cannot leak into a response just by being present
+// on the row.
+export function toFeedbackItem(row) {
   return {
     feedbackId: row.feedbackId,
     categoryId: row.categoryId,
@@ -105,6 +90,7 @@ export function toManagerItem(row) {
     body: row.body,
     status: toStatus(row),
     upCount: Number(row.upCount),
+    downCount: Number(row.downCount),
     submittedAt: toDateLabel(row.createdAt),
     isRead: Boolean(row.isRead),
     readAt: row.readAt ? toDateTimeLabel(row.readAt) : "",

@@ -1,59 +1,85 @@
 # Waflé
 
-Waflé is a privacy-first employee feedback experience created by Team Waffle
-Stompers for CIS 440.
+Waflé is a privacy-first employee feedback app built by Team Waffle Stompers for
+CIS 440. Employees check in on their week and share feedback; managers see the
+content and respond, but never who wrote it.
 
-## UI shell
+The app is a Next.js App Router project in `wafle-ui/`, written in JavaScript
+with plain CSS, backed by MariaDB.
 
-The interactive Next.js demo lives in [`wafle-ui`](./wafle-ui). It uses local
-mock data only—there is no database or backend connection.
+## Setup
+
+Requires Node.js 20.9 or newer.
 
 ```powershell
 cd wafle-ui
 npm install
-npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
-
-Demo accounts:
-
-| Role | Email | Password |
-| --- | --- | --- |
-| Employee | `employee@wafle.local` | `demo` |
-| Manager | `manager@wafle.local` | `demo` |
-
-## Legacy template
-
-The original Visual Studio ASP.NET template remains in `ProjectTemplate/` and
-has not been connected to the Next.js UI. Backend and database integration are
-intentionally outside the current shell.
-
-## Database connectivity test
-
-The standalone Next.js route at
-[`wafle-ui/src/app/database-test/page.tsx`](./wafle-ui/src/app/database-test/page.tsx)
-tests the MySQL connection from the server and renders the result at
-[http://localhost:3000/database-test](http://localhost:3000/database-test).
-
-Before starting the app, create `wafle-ui/.env.local` with the database
-configuration. Environment files are ignored by Git.
+Create `wafle-ui/.env.local` (it is gitignored, so each person makes their own):
 
 ```dotenv
 WAFLE_DB_HOST=107.180.1.16
 WAFLE_DB_PORT=3306
 WAFLE_DB_SCHEMA=cis440sum26team10
 WAFLE_DB_USER=cis440sum26team10
-WAFLE_DB_PASSWORD=your-password
+WAFLE_DB_PASSWORD=ask-a-teammate
+WAFLE_SESSION_SECRET=any-long-random-string
 ```
 
-`WAFLE_DB_*` is the canonical set read by both the connection pool
-(`wafle-ui/src/lib/db.js`) and this diagnostic page; `DATABASE_HOST` /
-`DATABASE_PORT` / `DATABASE_USER` / `DATABASE_PASSWORD` / `DATABASE_NAME` are
-accepted as a fallback for older `.env.local` files.
+`WAFLE_SESSION_SECRET` signs the session cookie. Generate one with:
 
-Then run `npm run dev` from `wafle-ui` and open the route above. The TSX page
-opens a server-side connection, verifies the selected schema, runs a read-only
-`SELECT 1` probe, confirms every table the app depends on is present, and
-closes the connection. The password is never sent to the browser or committed
-to the repository.
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
+
+Apply the schema changes, then start the app:
+
+```powershell
+npm run db:migrate
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) and create an account at
+`/register`, or sign in with an existing one.
+
+## Scripts
+
+| Script | What it does |
+| --- | --- |
+| `npm run dev` | Start the development server |
+| `npm run build` | Production build |
+| `npm run lint` | ESLint |
+| `npm run format` | Format with Prettier |
+| `npm run db:migrate` | Apply every migration in `db/migrations` (safe to re-run) |
+| `npm run set-password -- <email>` | Set a random password on an account and print it once |
+
+## Accounts and privacy
+
+Passwords are hashed with bcrypt. Signing in sets an HMAC-signed, httpOnly
+session cookie; `src/middleware.js` redirects unauthenticated page requests, and
+every API route independently checks the session, so the redirect is not the
+security boundary.
+
+Each account gets a random `anonymous_id` when it is created. Feedback, mood
+check-ins, and reactions are stored against that pseudonym, never the account.
+Nothing a manager can reach joins `feedback` to `users` — see the comment above
+`FEEDBACK_SELECT` in `src/lib/feedback-format.js`. The client never sends an
+identity of its own; it always comes from the signed session.
+
+Team mood stays hidden until enough people have checked in, so a small team
+cannot be narrowed down to one person's answer.
+
+## Layout
+
+```
+wafle-ui/
+  db/migrations/   schema changes, applied in name order
+  scripts/         migrate and set-password
+  src/app/         pages and API routes
+  src/components/  shared UI
+  src/lib/         database pool, session, query helpers
+```
+
+`ProjectTemplate/` is the original Visual Studio ASP.NET starter. It is not part
+of the app and is not wired to anything.
