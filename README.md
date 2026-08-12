@@ -40,8 +40,31 @@ npm run db:migrate
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) and create an account at
-`/register`, or sign in with an existing one.
+Open [http://localhost:3000](http://localhost:3000) and sign in with one of the
+accounts below, or create a new one at `/register`.
+
+## Team accounts
+
+| Name | Email | Role | Password |
+| --- | --- | --- | --- |
+| Christian Montoya | `cmontoy8@asu.edu` | Employee | `IcGtX9_XEwik` |
+| Jonathan Priest | `jtpriest@asu.edu` | Employee | `8-5VpRLZAh33` |
+| Jordan Beadle | `jsbeadle@asu.edu` | Employee | `8A0of9F2QNyD` |
+| Nahar Alsayedd | `nalsaye1@asu.edu` | Employee | `1PWwd9UFwzwO` |
+| Leo Smith | `lnsmit17@asu.edu` | Manager | `bEjzBRrDTwCd` |
+
+All four employees already report to Leo Smith and are accepted, so they can
+share feedback straight away.
+
+Change your own password at any time:
+
+```powershell
+npm run set-password -- your.email@asu.edu
+```
+
+The manager inbox stays empty until three different people have shared
+something. That is the anonymity threshold, not a bug: on a smaller team a
+manager could work out who wrote what.
 
 ## Scripts
 
@@ -51,8 +74,16 @@ Open [http://localhost:3000](http://localhost:3000) and create an account at
 | `npm run build` | Production build |
 | `npm run lint` | ESLint |
 | `npm run format` | Format with Prettier |
+| `npm run test` | Run the test suite |
 | `npm run db:migrate` | Apply every migration in `db/migrations` (safe to re-run) |
 | `npm run set-password -- <email>` | Set a random password on an account and print it once |
+| `npm run seed-moods [days]` | Fill in missing daily check-ins so the dashboard has a trend. Leaves real check-ins alone |
+| `npm run seed-roster -- --confirm` | **Destroys everything.** See below |
+
+`seed-roster` deletes every account and every piece of feedback, response,
+reaction, and check-in, then recreates the roster with new passwords. It is for
+starting over, not for fixing a bad account — there is no undo, and it will take
+real feedback with it. Use `set-password` for a forgotten password instead.
 
 ## Accounts and privacy
 
@@ -70,15 +101,21 @@ identity of its own; it always comes from the signed session.
 Team mood stays hidden until enough people have checked in, so a small team
 cannot be narrowed down to one person's answer.
 
+Anyone can delete their own account from the **Account** link in the sidebar.
+That removes everything they wrote. Feedback other people sent them is kept
+rather than erased, since it is not theirs to delete, but nobody will be able
+to act on it afterwards.
+
 ## Layout
 
 ```
 wafle-ui/
   db/migrations/   schema changes, applied in name order
-  scripts/         migrate and set-password
+  scripts/         migrate, set-password, seed-roster
   src/app/         pages and API routes
   src/components/  shared UI
   src/lib/         database pool, session, query helpers
+  tests/           node:test suite
 ```
 
 `ProjectTemplate/` is the original Visual Studio ASP.NET starter. It is not part
