@@ -77,7 +77,6 @@ manager could work out who wrote what.
 | `npm run test` | Run the test suite |
 | `npm run db:migrate` | Apply every migration in `db/migrations` (safe to re-run) |
 | `npm run set-password -- <email>` | Set a random password on an account and print it once |
-| `npm run seed-moods [days]` | Fill in missing daily check-ins so the dashboard has a trend. Leaves real check-ins alone |
 
 ## Accounts and privacy
 
@@ -105,12 +104,9 @@ to act on it afterwards.
 ```
 wafle-ui/
   db/migrations/   schema changes, applied in name order
-  scripts/         migrate, set-password, seed-moods
+  scripts/         migrate, set-password
   src/app/         pages and API routes
   src/components/  shared UI
   src/lib/         database pool, session, query helpers
   tests/           node:test suite
 ```
-
-`ProjectTemplate/` is the original Visual Studio ASP.NET starter. It is not part
-of the app and is not wired to anything.

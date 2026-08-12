@@ -5,14 +5,12 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
     "lint": "eslint",
     "db:migrate": "node --env-file=.env.local scripts/migrate.mjs",
     "set-password": "node --env-file=.env.local scripts/set-password.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "node --env-file-if-exists=.env.local --test \"tests/*.test.js\"",
-    "seed-moods": "node --env-file=.env.local scripts/seed-moods.mjs"
+    "test": "node --env-file-if-exists=.env.local --test \"tests/*.test.js\""
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
