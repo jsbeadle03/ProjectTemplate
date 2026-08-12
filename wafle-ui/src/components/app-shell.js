@@ -91,7 +91,9 @@ export function AppShell({ children }) {
           </div>
           <div>
             <strong>{user.displayName}</strong>
-            <span>{user.role === "manager" ? "Manager" : "Employee"}</span>
+            <Link className="profile-link" href="/account">
+              Account
+            </Link>
           </div>
           <button className="logout-link" onClick={handleLogOut} type="button">
             Log out

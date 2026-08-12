@@ -386,12 +386,19 @@ describe(
 
     it("refuses to orphan feedback by deleting its category", async () => {
       await withRollback(async (db) => {
-        const [[used]] = await db.query(
-          "SELECT category_id AS categoryId FROM feedback LIMIT 1",
+        // Creates its own feedback rather than relying on rows already being
+        // there, so the test still means something on an empty database.
+        const { manager, categoryId, employees } = await makeOpenTeam(db);
+        await submit(
+          db,
+          employees[0],
+          manager.id,
+          categoryId,
+          "Feedback that pins its category in place.",
         );
+
         await assert.rejects(
-          () =>
-            db.query("DELETE FROM categories WHERE id = ?", [used.categoryId]),
+          () => db.query("DELETE FROM categories WHERE id = ?", [categoryId]),
           /foreign key|constraint/i,
         );
       });
