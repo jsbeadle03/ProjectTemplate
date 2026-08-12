@@ -78,12 +78,6 @@ manager could work out who wrote what.
 | `npm run db:migrate` | Apply every migration in `db/migrations` (safe to re-run) |
 | `npm run set-password -- <email>` | Set a random password on an account and print it once |
 | `npm run seed-moods [days]` | Fill in missing daily check-ins so the dashboard has a trend. Leaves real check-ins alone |
-| `npm run seed-roster -- --confirm` | **Destroys everything.** See below |
-
-`seed-roster` deletes every account and every piece of feedback, response,
-reaction, and check-in, then recreates the roster with new passwords. It is for
-starting over, not for fixing a bad account — there is no undo, and it will take
-real feedback with it. Use `set-password` for a forgotten password instead.
 
 ## Accounts and privacy
 
@@ -111,7 +105,7 @@ to act on it afterwards.
 ```
 wafle-ui/
   db/migrations/   schema changes, applied in name order
-  scripts/         migrate, set-password, seed-roster
+  scripts/         migrate, set-password, seed-moods
   src/app/         pages and API routes
   src/components/  shared UI
   src/lib/         database pool, session, query helpers

@@ -12,7 +12,6 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "node --env-file-if-exists=.env.local --test \"tests/*.test.js\"",
-    "seed-roster": "node --env-file=.env.local scripts/seed-roster.mjs",
     "seed-moods": "node --env-file=.env.local scripts/seed-moods.mjs"
   },
   "dependencies": {
