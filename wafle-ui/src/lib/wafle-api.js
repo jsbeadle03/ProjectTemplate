@@ -42,6 +42,15 @@ export async function deleteCategory(categoryId) {
   return res.json();
 }
 
+export async function deleteMyAccount() {
+  const res = await fetch("/api/me", { method: "DELETE" });
+  if (!res.ok) {
+    const { error } = await res.json().catch(() => ({}));
+    throw new Error(error ?? "Could not delete your account.");
+  }
+  return res.json();
+}
+
 export async function getManagers() {
   const res = await fetch("/api/managers");
   if (!res.ok) {

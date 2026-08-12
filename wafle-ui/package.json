@@ -11,7 +11,8 @@
     "set-password": "node --env-file=.env.local scripts/set-password.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "node --env-file-if-exists=.env.local --test \"tests/*.test.js\""
+    "test": "node --env-file-if-exists=.env.local --test \"tests/*.test.js\"",
+    "seed-roster": "node --env-file=.env.local scripts/seed-roster.mjs"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

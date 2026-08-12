@@ -10,6 +10,11 @@ export async function middleware(request) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
+  // Reachable by either role, unlike the two workspaces.
+  if (pathname.startsWith("/account")) {
+    return NextResponse.next();
+  }
+
   const workspace = session.role === "manager" ? "/manager" : "/employee";
   if (!pathname.startsWith(workspace)) {
     return NextResponse.redirect(new URL(workspace, request.url));
@@ -19,5 +24,5 @@ export async function middleware(request) {
 }
 
 export const config = {
-  matcher: ["/employee/:path*", "/manager/:path*"],
+  matcher: ["/employee/:path*", "/manager/:path*", "/account/:path*"],
 };

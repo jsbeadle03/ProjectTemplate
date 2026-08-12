@@ -932,6 +932,16 @@ h3,
   font-size: 0.62rem;
 }
 
+.profile-link {
+  color: rgba(255, 250, 240, 0.48);
+  display: block;
+  font-size: 0.62rem;
+}
+
+.profile-link:hover {
+  color: rgba(255, 250, 240, 0.85);
+}
+
 .logout-link {
   background: none;
   border: 0;
